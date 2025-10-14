@@ -49,11 +49,11 @@ export default function Table() {
     // Créer et mélanger le paquet avec seed aléatoire
     const shuffled = shuffleDeck(createDeck(), Date.now());
     
-    // Distribuer 7 cartes au joueur
-    const [playerHand, afterPlayer] = deal(shuffled, 7);
+    // Distribuer 10 cartes au joueur
+    const [playerHand, afterPlayer] = deal(shuffled, 10);
     
-    // Distribuer 7 cartes au bot
-    const [botHand, afterBot] = deal(afterPlayer, 7);
+    // Distribuer 10 cartes au bot
+    const [botHand, afterBot] = deal(afterPlayer, 10);
     
     // Première carte de la défausse
     const [firstDiscard, remaining] = draw(afterBot);
