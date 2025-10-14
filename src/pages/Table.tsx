@@ -479,8 +479,23 @@ export default function Table() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <GameHand cards={bot.hand} title="Main du Bot (cachée)" />
+          <div className="lg:col-span-2 space-y-6">
+              <div className="w-full" role="region" aria-label="Main du Bot">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  Main du Bot ({bot.hand.length} cartes)
+                </h3>
+                <div className="flex gap-2 justify-center md:justify-start">
+                  {bot.hand.map((_, index) => (
+                    <div
+                      key={index}
+                      className="w-16 h-24 rounded-lg border-2 border-border bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center"
+                      aria-label={`Carte cachée ${index + 1}`}
+                    >
+                      <span className="text-3xl text-muted-foreground">🂠</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               
               <GamePile
                 drawPile={drawPile}
