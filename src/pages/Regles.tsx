@@ -14,7 +14,7 @@ export default function Regles() {
       <div className="p-4 md:p-8">
         <div className="max-w-3xl mx-auto">
           <div className="bg-card rounded-xl p-6 md:p-8 shadow-xl">
-            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-6">Règles du Rami 51</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] dark:text-foreground mb-6">Règles du Rami 51</h1>
 
             {/* Navigation rapide */}
             <nav className="flex flex-wrap gap-2 mb-8 pb-4 border-b border-border" aria-label="Navigation des règles">
