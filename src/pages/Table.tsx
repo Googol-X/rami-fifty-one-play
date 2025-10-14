@@ -14,6 +14,7 @@ import {
 import { validateMeld } from '@/utils/validation';
 import { findValidCombos, evaluateCardUtility } from '@/utils/botAI';
 import { GameHand } from '@/components/GameHand';
+import { HandReorder } from '@/components/HandReorder';
 import { GamePile } from '@/components/GamePile';
 import { GameScore } from '@/components/GameScore';
 import { GameControls } from '@/components/GameControls';
@@ -420,12 +421,15 @@ export default function Table() {
                 onPickDiscard={handlePickDiscard}
               />
 
-              <GameHand
-                cards={player.hand}
-                onCardClick={handleCardClick}
-                selectedIndices={selectedCards}
-                title="Votre main"
-              />
+              <div className="w-full">
+                <h3 className="text-lg font-semibold text-foreground mb-3">Votre main</h3>
+                <HandReorder
+                  hand={player.hand}
+                  selected={selectedCards}
+                  onToggle={handleCardClick}
+                  onReorder={(newHand) => setPlayer(prev => ({ ...prev, hand: newHand }))}
+                />
+              </div>
 
               <ComboPreview 
                 selectedCards={selectedCards.map(i => player.hand[i])}
