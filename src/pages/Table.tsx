@@ -12,6 +12,7 @@ import {
   peekDiscard 
 } from '@/utils/deck';
 import { validateMeld } from '@/utils/validation';
+import { findValidCombos, evaluateCardUtility } from '@/utils/botAI';
 import { GameHand } from '@/components/GameHand';
 import { GamePile } from '@/components/GamePile';
 import { GameScore } from '@/components/GameScore';
@@ -291,34 +292,75 @@ export default function Table() {
   const botTurn = () => {
     if (roundOver) return;
     
-    // Le bot pioche
-    const [drawnCard, newDrawPile] = draw(drawPile);
-    
-    if (drawnCard) {
-      setDrawPile(newDrawPile);
+    setTimeout(() => {
+      // Décider pioche ou défausse
+      const topDiscard = discardPile[discardPile.length - 1];
+      let shouldPickDiscard = false;
       
-      // Le bot défausse une carte aléatoire
+      if (topDiscard) {
+        const utility = evaluateCardUtility(topDiscard, bot.hand);
+        shouldPickDiscard = utility > 15; // Seuil arbitraire
+      }
+      
+      // Piocher
+      const [drawnCard, newDrawPile] = shouldPickDiscard && topDiscard
+        ? [topDiscard, drawPile]
+        : draw(drawPile);
+      
+      if (!drawnCard) return;
+      
+      setDrawPile(newDrawPile);
+      if (shouldPickDiscard) {
+        setDiscardPile(prev => prev.slice(0, -1));
+      }
+      
       setTimeout(() => {
-        setBot(prev => {
-          const newHand = [...prev.hand, drawnCard];
-          const randomIndex = Math.floor(Math.random() * newHand.length);
-          const discardedCard = newHand[randomIndex];
-          const finalHand = newHand.filter((_, i) => i !== randomIndex);
+        const newHand = [...bot.hand, drawnCard];
+        
+        // Tenter de déposer des combinaisons
+        const combos = findValidCombos(newHand);
+        let handAfterLay = [...newHand];
+        let totalPoints = 0;
+        
+        for (const combo of combos) {
+          const validation = validateMeld(combo);
+          if (!validation.valid) continue;
           
-          setDiscardPile(p => addToDiscard(p, discardedCard));
+          const points = validation.points || 0;
           
-          // Vérifier si le bot a vidé sa main
-          if (finalHand.length === 0) {
-            setTimeout(() => checkRoundEnd({ ...prev, hand: finalHand }, true), 300);
-          }
+          // Vérifier seuil 51 pour dépôt initial
+          if (!botHasInitialMeld && points < 51) continue;
           
-          return {
+          totalPoints += points;
+          handAfterLay = handAfterLay.filter(c => !combo.some(cc => cc.id === c.id));
+          
+          setBot(prev => ({
             ...prev,
-            hand: finalHand
-          };
-        });
-      }, 500);
-    }
+            hand: handAfterLay,
+            laid: [...prev.laid, combo],
+            score: prev.score + points
+          }));
+          
+          if (!botHasInitialMeld) setBotHasInitialMeld(true);
+          break; // Une combo à la fois
+        }
+        
+        // Défausser carte la moins utile
+        if (handAfterLay.length > 0) {
+          const utilities = handAfterLay.map(c => ({ card: c, utility: evaluateCardUtility(c, handAfterLay) }));
+          utilities.sort((a, b) => a.utility - b.utility);
+          const toDiscard = utilities[0].card;
+          const finalHand = handAfterLay.filter(c => c.id !== toDiscard.id);
+          
+          setBot(prev => ({ ...prev, hand: finalHand }));
+          setDiscardPile(p => [...p, toDiscard]);
+          
+          if (finalHand.length === 0) {
+            setTimeout(() => checkRoundEnd({ ...bot, hand: finalHand }, true), 300);
+          }
+        }
+      }, Math.random() * 400 + 400);
+    }, Math.random() * 400 + 400);
   };
 
   return (
