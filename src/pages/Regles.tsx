@@ -35,61 +35,104 @@ export default function Regles() {
               ))}
             </nav>
 
-            <div className="space-y-6 text-sm md:text-base">
-              <section id="depot">
-                <h2 className="text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
+            <div className="space-y-8 text-base">
+              <section id="depot" className="bg-primary/5 border-l-4 border-primary rounded-r-lg p-4">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
                   <span>🎯</span> Dépôt initial 51
                 </h2>
-                <p className="text-muted-foreground">
-                  Votre <strong>première combinaison</strong> doit totaliser au moins <strong className="text-primary">51 points</strong>. 
-                  Les dépôts suivants sont libres.
+                <p className="text-foreground leading-relaxed mb-2">
+                  Votre première combinaison doit totaliser au moins <span className="font-bold text-primary text-lg">51 points</span>. Les dépôts suivants sont libres.
                 </p>
+                <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                  <p className="text-foreground font-semibold text-sm">
+                    ⚠️ Important : Le premier dépôt doit obligatoirement inclure au moins <span className="text-orange-600 dark:text-orange-400">une série</span> (3+ cartes de même valeur)
+                  </p>
+                </div>
               </section>
 
-              <section id="combos">
-                <h2 className="text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
+              <section id="combos" className="bg-secondary/30 border-l-4 border-secondary rounded-r-lg p-4">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
                   <span>✨</span> Combinaisons
                 </h2>
-                <ul className="space-y-1 text-muted-foreground">
-                  <li><strong>Série :</strong> 3+ cartes même valeur, couleurs différentes (7♠ 7♥ 7♦)</li>
-                  <li><strong>Suite :</strong> 3+ cartes consécutives, même couleur (5♥ 6♥ 7♥)</li>
-                  <li><strong>As :</strong> uniquement en début de suite (A-2-3), jamais Q-K-A</li>
-                </ul>
+                <div className="space-y-4">
+                  <div className="bg-background/80 p-3 rounded-lg">
+                    <p className="text-foreground font-semibold mb-1">
+                      <span className="text-primary">Série :</span> 3+ cartes même valeur, couleurs différentes
+                    </p>
+                    <p className="text-foreground/80 text-sm">
+                      Exemple : 7♠ 7♥ 7♦
+                    </p>
+                  </div>
+                  <div className="bg-background/80 p-3 rounded-lg">
+                    <p className="text-foreground font-semibold mb-1">
+                      <span className="text-primary">Suite :</span> 3+ cartes consécutives, même couleur
+                    </p>
+                    <p className="text-foreground/80 text-sm">
+                      Exemple : 5♥ 6♥ 7♥
+                    </p>
+                  </div>
+                  <div className="bg-background/80 p-3 rounded-lg">
+                    <p className="text-foreground font-semibold mb-1">
+                      <span className="text-primary">As :</span> position basse (A-2-3) ou haute (Q-K-A)
+                    </p>
+                    <p className="text-foreground/80 text-sm">
+                      L&apos;As peut être utilisé en position basse (A-2-3) ou haute (Q-K-A)
+                    </p>
+                  </div>
+                </div>
               </section>
 
-              <section id="tour">
-                <h2 className="text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
+              <section id="tour" className="bg-accent/20 border-l-4 border-accent rounded-r-lg p-4">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
                   <span>🎮</span> Tour de jeu
                 </h2>
-                <p className="text-muted-foreground">
-                  <strong>1.</strong> Piochez (pioche ou défausse) • 
-                  <strong>2.</strong> Déposez combinaisons (optionnel) • 
-                  <strong>3.</strong> Défaussez 1 carte
-                </p>
+                <ol className="space-y-2">
+                  <li className="text-foreground">
+                    <span className="font-bold text-primary">1.</span> Piochez une carte (de la pioche ou de la défausse)
+                  </li>
+                  <li className="text-foreground">
+                    <span className="font-bold text-primary">2.</span> Déposez vos combinaisons (optionnel)
+                  </li>
+                  <li className="text-foreground">
+                    <span className="font-bold text-primary">3.</span> Défaussez exactement 1 carte
+                  </li>
+                </ol>
+                <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <p className="text-foreground text-sm">
+                    💡 Vous pouvez aussi ajouter des cartes aux combinaisons déjà posées sur la table (vôtres ou adversaire)
+                  </p>
+                </div>
               </section>
 
-              <section id="fin">
-                <h2 className="text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
+              <section id="fin" className="bg-destructive/10 border-l-4 border-destructive rounded-r-lg p-4">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
                   <span>🏁</span> Fin de manche
                 </h2>
-                <p className="text-muted-foreground">
-                  Manche terminée quand un joueur vide sa main. Les cartes restantes de l&apos;adversaire 
-                  deviennent des <strong className="text-destructive">points de pénalité</strong>.
+                <p className="text-foreground leading-relaxed">
+                  La manche se termine quand un joueur vide sa main. Les cartes restantes de l&apos;adversaire (appelées <span className="font-bold text-destructive">"orphelines"</span>) deviennent des points de pénalité.
                 </p>
               </section>
 
-              <section id="score">
-                <h2 className="text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
-                  <span>💰</span> Valeurs
+              <section id="score" className="bg-green-500/10 border-l-4 border-green-500 rounded-r-lg p-4">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
+                  <span>💰</span> Valeurs des cartes
                 </h2>
-                <div className="grid grid-cols-3 gap-2 text-muted-foreground text-sm">
-                  <div><strong>As :</strong> 11pts</div>
-                  <div><strong>Figures :</strong> 10pts</div>
-                  <div><strong>2-10 :</strong> valeur</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                  <div className="bg-background/80 p-3 rounded-lg">
+                    <p className="font-bold text-foreground">As : <span className="text-primary">11 pts</span></p>
+                  </div>
+                  <div className="bg-background/80 p-3 rounded-lg">
+                    <p className="font-bold text-foreground">Figures (J, Q, K) : <span className="text-primary">10 pts</span></p>
+                  </div>
+                  <div className="bg-background/80 p-3 rounded-lg">
+                    <p className="font-bold text-foreground">2 à 10 : <span className="text-primary">valeur nominale</span></p>
+                  </div>
                 </div>
-                <p className="mt-2 text-muted-foreground">
-                  Partie jusqu&apos;à <strong>200 points</strong>.
-                </p>
+                <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <p className="text-foreground font-semibold">
+                    🏆 La partie se termine quand un joueur atteint <span className="text-lg text-primary">200 points</span>
+                  </p>
+                </div>
               </section>
             </div>
           </div>
