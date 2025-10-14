@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card as CardType, Player, RANK_VALUES } from '@/types/game';
-import { createDeck, shuffleDeck } from '@/utils/deck';
+import { 
+  createDeck, 
+  shuffleDeck, 
+  deal, 
+  draw, 
+  discard as addToDiscard,
+  pickFromDiscard,
+  peekDiscard 
+} from '@/utils/deck';
 import { GameHand } from '@/components/GameHand';
 import { GamePile } from '@/components/GamePile';
 import { GameScore } from '@/components/GameScore';
@@ -38,43 +46,64 @@ export default function Table() {
   }, []);
 
   const initGame = () => {
-    const deck = shuffleDeck(createDeck(), Date.now());
-    const playerHand = deck.slice(0, 7);
-    const botHand = deck.slice(7, 14);
-    const discard = [deck[14]];
-    const draw = deck.slice(15);
-
+    // Créer et mélanger le paquet avec seed aléatoire
+    const shuffled = shuffleDeck(createDeck(), Date.now());
+    
+    // Distribuer 7 cartes au joueur
+    const [playerHand, afterPlayer] = deal(shuffled, 7);
+    
+    // Distribuer 7 cartes au bot
+    const [botHand, afterBot] = deal(afterPlayer, 7);
+    
+    // Première carte de la défausse
+    const [firstDiscard, remaining] = draw(afterBot);
+    
     setPlayer(prev => ({ ...prev, hand: playerHand, laid: [], score: 0 }));
     setBot(prev => ({ ...prev, hand: botHand, laid: [], score: 0 }));
-    setDiscardPile(discard);
-    setDrawPile(draw);
+    setDiscardPile(firstDiscard ? [firstDiscard] : []);
+    setDrawPile(remaining);
     setSelectedCards([]);
     setHasDrawn(false);
     setGameOver(false);
+    
+    console.log('🎲 Nouvelle partie initialisée:', {
+      pioche: remaining.length,
+      défausse: firstDiscard?.id,
+      joueur: playerHand.length,
+      bot: botHand.length
+    });
   };
 
   const handleDrawCard = () => {
     if (hasDrawn || gameOver) return;
-    if (drawPile.length === 0) {
+    
+    const [drawnCard, newDrawPile] = draw(drawPile);
+    
+    if (!drawnCard) {
       toast({ title: "Pioche vide", description: "Aucune carte à piocher" });
       return;
     }
 
-    const newCard = drawPile[0];
-    setPlayer(prev => ({ ...prev, hand: [...prev.hand, newCard] }));
-    setDrawPile(prev => prev.slice(1));
+    setPlayer(prev => ({ ...prev, hand: [...prev.hand, drawnCard] }));
+    setDrawPile(newDrawPile);
     setHasDrawn(true);
-    toast({ title: "Carte piochée", description: `Vous avez pioché ${newCard.rank}${newCard.suit}` });
+    toast({ title: "Carte piochée", description: `Vous avez pioché ${drawnCard.rank}${drawnCard.suit}` });
   };
 
   const handlePickDiscard = () => {
-    if (hasDrawn || gameOver || discardPile.length === 0) return;
+    if (hasDrawn || gameOver) return;
+    
+    const [pickedCard, newDiscardPile] = pickFromDiscard(discardPile);
+    
+    if (!pickedCard) {
+      toast({ title: "Défausse vide", description: "Aucune carte à récupérer" });
+      return;
+    }
 
-    const card = discardPile[discardPile.length - 1];
-    setPlayer(prev => ({ ...prev, hand: [...prev.hand, card] }));
-    setDiscardPile(prev => prev.slice(0, -1));
+    setPlayer(prev => ({ ...prev, hand: [...prev.hand, pickedCard] }));
+    setDiscardPile(newDiscardPile);
     setHasDrawn(true);
-    toast({ title: "Défausse récupérée", description: `Vous avez pris ${card.rank}${card.suit}` });
+    toast({ title: "Défausse récupérée", description: `Vous avez pris ${pickedCard.rank}${pickedCard.suit}` });
   };
 
   const handleCardClick = (index: number) => {
@@ -120,11 +149,13 @@ export default function Table() {
     }
 
     const discardedCard = player.hand[selectedCards[0]];
+    const newDiscardPile = addToDiscard(discardPile, discardedCard);
+    
     setPlayer(prev => ({
       ...prev,
       hand: prev.hand.filter((_, i) => i !== selectedCards[0])
     }));
-    setDiscardPile(prev => [...prev, discardedCard]);
+    setDiscardPile(newDiscardPile);
     setSelectedCards([]);
     setHasDrawn(false);
     toast({ title: "Carte défaussée", description: "Tour terminé" });
@@ -135,21 +166,28 @@ export default function Table() {
   const botTurn = () => {
     if (gameOver) return;
     
-    setBot(prev => {
-      const newHand = [...prev.hand];
-      if (drawPile.length > 0) {
-        const drawnCard = drawPile[0];
-        newHand.push(drawnCard);
-        setDrawPile(p => p.slice(1));
-      }
-
-      if (newHand.length > 0) {
-        const discarded = newHand.pop()!;
-        setDiscardPile(p => [...p, discarded]);
-      }
-
-      return { ...prev, hand: newHand };
-    });
+    // Le bot pioche
+    const [drawnCard, newDrawPile] = draw(drawPile);
+    
+    if (drawnCard) {
+      setDrawPile(newDrawPile);
+      
+      // Le bot défausse une carte aléatoire
+      setTimeout(() => {
+        setBot(prev => {
+          const newHand = [...prev.hand, drawnCard];
+          const randomIndex = Math.floor(Math.random() * newHand.length);
+          const discardedCard = newHand[randomIndex];
+          
+          setDiscardPile(p => addToDiscard(p, discardedCard));
+          
+          return {
+            ...prev,
+            hand: newHand.filter((_, i) => i !== randomIndex)
+          };
+        });
+      }, 500);
+    }
   };
 
   return (
