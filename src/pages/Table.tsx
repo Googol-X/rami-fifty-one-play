@@ -19,6 +19,7 @@ import { GameScore } from '@/components/GameScore';
 import { GameControls } from '@/components/GameControls';
 import { ComboPreview } from '@/components/ComboPreview';
 import { RoundScore } from '@/components/RoundScore';
+import { LiveAnnouncer } from '@/components/LiveAnnouncer';
 import { Layout } from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
 import { useGameScore } from '@/hooks/useGameScore';
@@ -50,6 +51,7 @@ export default function Table() {
   const [roundWinner, setRoundWinner] = useState<'player' | 'bot' | null>(null);
   const [playerHasInitialMeld, setPlayerHasInitialMeld] = useState(false);
   const [botHasInitialMeld, setBotHasInitialMeld] = useState(false);
+  const [liveMessage, setLiveMessage] = useState<string>('');
 
   useEffect(() => {
     initGame();
@@ -130,6 +132,7 @@ export default function Table() {
     setPlayer(prev => ({ ...prev, hand: [...prev.hand, drawnCard] }));
     setDrawPile(newDrawPile);
     setHasDrawn(true);
+    setLiveMessage(`Carte piochée: ${drawnCard.rank}${drawnCard.suit}. Sélectionnez des cartes pour former une combinaison ou défausser.`);
     toast({ 
       title: "✓ Carte piochée", 
       description: `${drawnCard.rank}${drawnCard.suit} ajoutée à votre main` 
@@ -153,6 +156,7 @@ export default function Table() {
     setPlayer(prev => ({ ...prev, hand: [...prev.hand, pickedCard] }));
     setDiscardPile(newDiscardPile);
     setHasDrawn(true);
+    setLiveMessage(`Défausse récupérée: ${pickedCard.rank}${pickedCard.suit}. Sélectionnez des cartes pour former une combinaison ou défausser.`);
     toast({ 
       title: "✓ Défausse prise", 
       description: `${pickedCard.rank}${pickedCard.suit} ajoutée à votre main` 
@@ -184,6 +188,7 @@ export default function Table() {
     const validation = validateMeld(combo);
 
     if (!validation.valid) {
+      setLiveMessage(`Erreur: ${validation.error}. ${validation.details}`);
       toast({ 
         title: validation.error || "Combinaison invalide",
         description: validation.details,
@@ -226,6 +231,7 @@ export default function Table() {
       ? `🎯 Dépôt initial réussi ! ${validation.details} : +${points} points`
       : `${validation.details} : +${points} points (total: ${newScore})`;
     
+    setLiveMessage(`Combinaison déposée. ${message}`);
     toast({ 
       title: "✓ Combinaison déposée", 
       description: message
@@ -276,6 +282,7 @@ export default function Table() {
     setDiscardPile(newDiscardPile);
     setSelectedCards([]);
     setHasDrawn(false);
+    setLiveMessage(`Carte ${discardedCard.rank}${discardedCard.suit} défaussée. Tour du bot.`);
     toast({ 
       title: "✓ Tour terminé", 
       description: `${discardedCard.rank}${discardedCard.suit} défaussée` 
@@ -365,6 +372,8 @@ export default function Table() {
 
   return (
     <Layout gameInProgress={!roundOver && (player.hand.length > 0 || bot.hand.length > 0)}>
+      <LiveAnnouncer message={liveMessage} />
+      
       {roundOver && roundWinner && (
         <RoundScore
           playerHand={player.hand}
@@ -385,10 +394,17 @@ export default function Table() {
       <div className="p-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground" role="status" aria-live="polite">
               Manche {gameScore.rounds.length + 1} • Score global: {gameScore.playerTotal} - {gameScore.botTotal}
+              {!hasDrawn && !roundOver && (
+                <span className="ml-2 text-primary font-medium">• À vous de jouer</span>
+              )}
             </div>
-            <Button onClick={initGame} variant="outline">
+            <Button 
+              onClick={initGame} 
+              variant="outline"
+              aria-label="Commencer une nouvelle manche"
+            >
               Nouvelle manche
             </Button>
           </div>
