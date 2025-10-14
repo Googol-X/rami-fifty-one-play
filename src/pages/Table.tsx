@@ -16,6 +16,7 @@ import { GameHand } from '@/components/GameHand';
 import { GamePile } from '@/components/GamePile';
 import { GameScore } from '@/components/GameScore';
 import { GameControls } from '@/components/GameControls';
+import { ComboPreview } from '@/components/ComboPreview';
 import { Layout } from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
 
@@ -42,6 +43,8 @@ export default function Table() {
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [playerHasInitialMeld, setPlayerHasInitialMeld] = useState(false);
+  const [botHasInitialMeld, setBotHasInitialMeld] = useState(false);
 
   useEffect(() => {
     initGame();
@@ -67,6 +70,8 @@ export default function Table() {
     setSelectedCards([]);
     setHasDrawn(false);
     setGameOver(false);
+    setPlayerHasInitialMeld(false);
+    setBotHasInitialMeld(false);
     
     console.log('🎲 Nouvelle partie initialisée:', {
       pioche: remaining.length,
@@ -156,6 +161,17 @@ export default function Table() {
     }
 
     const points = validation.points || 0;
+
+    // Vérifier le seuil de 51 pour le dépôt initial
+    if (!playerHasInitialMeld && points < 51) {
+      toast({ 
+        title: "Dépôt initial insuffisant",
+        description: `Premier dépôt requis: minimum 51 points (actuellement ${points})`,
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const newScore = player.score + points;
 
     setPlayer(prev => ({
@@ -165,13 +181,23 @@ export default function Table() {
       score: newScore
     }));
 
+    // Marquer que le joueur a fait son dépôt initial
+    if (!playerHasInitialMeld) {
+      setPlayerHasInitialMeld(true);
+    }
+
     setSelectedCards([]);
+    
+    const message = !playerHasInitialMeld 
+      ? `🎯 Dépôt initial réussi ! ${validation.details} : +${points} points`
+      : `${validation.details} : +${points} points (total: ${newScore})`;
+    
     toast({ 
       title: "✓ Combinaison déposée", 
-      description: `${validation.details} : +${points} points (total: ${newScore})` 
+      description: message
     });
 
-    if (newScore >= 51) {
+    if (newScore >= 51 && playerHasInitialMeld) {
       setGameOver(true);
       toast({ 
         title: "🎉 Victoire !", 
@@ -281,6 +307,11 @@ export default function Table() {
                 title="Votre main"
               />
 
+              <ComboPreview 
+                selectedCards={selectedCards.map(i => player.hand[i])}
+                hasInitialMeld={playerHasInitialMeld}
+              />
+
               <GameControls
                 hasDrawn={hasDrawn}
                 selectedCount={selectedCards.length}
@@ -292,6 +323,17 @@ export default function Table() {
 
             <div className="space-y-6">
               <GameScore playerScore={player.score} botScore={bot.score} />
+              
+              {!playerHasInitialMeld && (
+                <div className="bg-orange-500/10 border-2 border-orange-500/30 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-orange-600 dark:text-orange-400 mb-1">
+                    🎯 Dépôt initial requis
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Votre première combinaison doit totaliser au moins <span className="font-bold text-foreground">51 points</span>
+                  </p>
+                </div>
+              )}
               
               {player.laid.length > 0 && (
                 <div className="bg-secondary/30 rounded-xl p-4 border-2 border-border">
