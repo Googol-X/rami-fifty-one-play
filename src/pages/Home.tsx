@@ -1,12 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Layout } from '@/components/Layout';
 
 export default function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="text-center max-w-2xl">
+    <Layout>
+      <div className="flex flex-col items-center justify-center p-4 min-h-[calc(100vh-4rem)]">
+        <div className="text-center max-w-2xl">
         <h1 className="text-6xl font-bold text-primary mb-4 drop-shadow-lg">
           Rami 51
         </h1>
@@ -46,8 +48,9 @@ export default function Home() {
             <div className="text-4xl mb-2">🤖</div>
             <p className="text-sm text-muted-foreground">vs Bot</p>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

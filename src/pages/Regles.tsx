@@ -1,21 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { Layout } from '@/components/Layout';
 
 export default function Regles() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-3xl mx-auto">
-        <Button
-          variant="outline"
-          onClick={() => navigate('/')}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
-        </Button>
+    <Layout>
+      <div className="p-4 md:p-8">
+        <div className="max-w-3xl mx-auto">
 
         <div className="bg-card rounded-xl p-6 md:p-8 shadow-xl">
           <h1 className="text-4xl font-bold text-primary mb-6">Règles du Rami 51</h1>
@@ -85,5 +78,6 @@ export default function Regles() {
         </div>
       </div>
     </div>
+    </Layout>
   );
 }

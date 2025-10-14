@@ -6,8 +6,8 @@ import { createDeck, shuffleDeck } from '@/utils/deck';
 import { GameHand } from '@/components/GameHand';
 import { GamePile } from '@/components/GamePile';
 import { GameScore } from '@/components/GameScore';
+import { Layout } from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft } from 'lucide-react';
 
 export default function Table() {
   const navigate = useNavigate();
@@ -153,62 +153,60 @@ export default function Table() {
   };
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <Button variant="outline" onClick={() => navigate('/')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Quitter
-          </Button>
-          <Button onClick={initGame} variant="outline">
-            Nouvelle partie
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <GameHand cards={bot.hand} title="Main du Bot (cachée)" />
-            
-            <GamePile
-              drawPile={drawPile}
-              discardPile={discardPile}
-              onDrawCard={handleDrawCard}
-              onPickDiscard={handlePickDiscard}
-            />
-
-            <GameHand
-              cards={player.hand}
-              onCardClick={handleCardClick}
-              selectedIndices={selectedCards}
-              title="Votre main"
-            />
-
-            <div className="flex flex-wrap gap-3 justify-center">
-              <Button onClick={handleLayCombo} disabled={!hasDrawn || selectedCards.length < 3}>
-                Déposer combinaison ({selectedCards.length})
-              </Button>
-              <Button onClick={handleDiscard} disabled={!hasDrawn || selectedCards.length !== 1} variant="secondary">
-                Défausser et finir le tour
-              </Button>
-            </div>
+    <Layout gameInProgress={!gameOver && (player.hand.length > 0 || bot.hand.length > 0)}>
+      <div className="p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-end items-center mb-6">
+            <Button onClick={initGame} variant="outline">
+              Nouvelle partie
+            </Button>
           </div>
 
-          <div className="space-y-6">
-            <GameScore playerScore={player.score} botScore={bot.score} />
-            
-            {player.laid.length > 0 && (
-              <div className="bg-secondary/30 rounded-xl p-4 border-2 border-border">
-                <h3 className="text-lg font-semibold mb-3">Vos combinaisons</h3>
-                {player.laid.map((combo, i) => (
-                  <div key={i} className="text-sm text-muted-foreground mb-1">
-                    Combo {i + 1}: {combo.map(c => `${c.rank}${c.suit}`).join(' ')}
-                  </div>
-                ))}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <GameHand cards={bot.hand} title="Main du Bot (cachée)" />
+              
+              <GamePile
+                drawPile={drawPile}
+                discardPile={discardPile}
+                onDrawCard={handleDrawCard}
+                onPickDiscard={handlePickDiscard}
+              />
+
+              <GameHand
+                cards={player.hand}
+                onCardClick={handleCardClick}
+                selectedIndices={selectedCards}
+                title="Votre main"
+              />
+
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Button onClick={handleLayCombo} disabled={!hasDrawn || selectedCards.length < 3}>
+                  Déposer combinaison ({selectedCards.length})
+                </Button>
+                <Button onClick={handleDiscard} disabled={!hasDrawn || selectedCards.length !== 1} variant="secondary">
+                  Défausser et finir le tour
+                </Button>
               </div>
-            )}
+            </div>
+
+            <div className="space-y-6">
+              <GameScore playerScore={player.score} botScore={bot.score} />
+              
+              {player.laid.length > 0 && (
+                <div className="bg-secondary/30 rounded-xl p-4 border-2 border-border">
+                  <h3 className="text-lg font-semibold mb-3">Vos combinaisons</h3>
+                  {player.laid.map((combo, i) => (
+                    <div key={i} className="text-sm text-muted-foreground mb-1">
+                      Combo {i + 1}: {combo.map(c => `${c.rank}${c.suit}`).join(' ')}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
