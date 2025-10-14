@@ -57,18 +57,18 @@ export default function Regles() {
                 <div className="space-y-4">
                   <div className="bg-white dark:bg-background/80 border border-gray-200 dark:border-foreground/10 p-3 rounded-lg">
                     <p className="text-gray-900 dark:text-foreground font-semibold mb-1">
-                      Série : 3+ cartes même valeur, couleurs différentes
+                      Série : 3 cartes minimum même valeur, couleurs différentes
                     </p>
                     <p className="text-gray-700 dark:text-foreground/70 text-sm">
-                      Exemple : 7♠ 7♥ 7♦
+                      Exemple : 7♠ 7♥ 7♦ ou 7♠ 7♥ 7♦ 7♣
                     </p>
                   </div>
                   <div className="bg-white dark:bg-background/80 border border-gray-200 dark:border-foreground/10 p-3 rounded-lg">
                     <p className="text-gray-900 dark:text-foreground font-semibold mb-1">
-                      Suite : 3+ cartes consécutives, même couleur
+                      Suite : 3 cartes consécutives minimum, même couleur
                     </p>
                     <p className="text-gray-700 dark:text-foreground/70 text-sm">
-                      Exemple : 5♥ 6♥ 7♥
+                      Exemple : 5♥ 6♥ 7♥ ou 5♥ 6♥ 7♥ 8♥ 9♥
                     </p>
                   </div>
                   <div className="bg-white dark:bg-background/80 border border-gray-200 dark:border-foreground/10 p-3 rounded-lg">
