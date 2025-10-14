@@ -45,7 +45,7 @@ export default function Regles() {
                 </p>
                 <div className="mt-3 p-3 bg-orange-100 dark:bg-foreground/10 border border-orange-300 dark:border-foreground/20 rounded-lg">
                   <p className="text-gray-900 dark:text-foreground font-semibold text-sm">
-                    SERIE OBLIGATOIRE
+                    SUITE OBLIGATOIRE
                   </p>
                 </div>
               </section>
