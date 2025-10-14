@@ -11,6 +11,7 @@ import {
   pickFromDiscard,
   peekDiscard 
 } from '@/utils/deck';
+import { validateMeld } from '@/utils/validation';
 import { GameHand } from '@/components/GameHand';
 import { GamePile } from '@/components/GamePile';
 import { GameScore } from '@/components/GameScore';
@@ -142,17 +143,19 @@ export default function Table() {
       return;
     }
 
-    if (selectedCards.length < 3) {
+    const combo = selectedCards.map(i => player.hand[i]);
+    const validation = validateMeld(combo);
+
+    if (!validation.valid) {
       toast({ 
-        title: "Combinaison invalide", 
-        description: "Sélectionnez au moins 3 cartes", 
+        title: validation.error || "Combinaison invalide",
+        description: validation.details,
         variant: "destructive" 
       });
       return;
     }
 
-    const combo = selectedCards.map(i => player.hand[i]);
-    const points = combo.reduce((sum, card) => sum + RANK_VALUES[card.rank], 0);
+    const points = validation.points || 0;
     const newScore = player.score + points;
 
     setPlayer(prev => ({
@@ -165,7 +168,7 @@ export default function Table() {
     setSelectedCards([]);
     toast({ 
       title: "✓ Combinaison déposée", 
-      description: `+${points} points (total: ${newScore})` 
+      description: `${validation.details} : +${points} points (total: ${newScore})` 
     });
 
     if (newScore >= 51) {
