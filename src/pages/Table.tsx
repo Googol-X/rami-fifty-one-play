@@ -17,12 +17,15 @@ import { GamePile } from '@/components/GamePile';
 import { GameScore } from '@/components/GameScore';
 import { GameControls } from '@/components/GameControls';
 import { ComboPreview } from '@/components/ComboPreview';
+import { RoundScore } from '@/components/RoundScore';
 import { Layout } from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
+import { useGameScore } from '@/hooks/useGameScore';
 
 export default function Table() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { gameScore, addRound, resetGame, isGameOver: isFullGameOver, winner: gameWinner } = useGameScore();
   
   const [drawPile, setDrawPile] = useState<CardType[]>([]);
   const [discardPile, setDiscardPile] = useState<CardType[]>([]);
@@ -42,7 +45,8 @@ export default function Table() {
   });
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [hasDrawn, setHasDrawn] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
+  const [roundOver, setRoundOver] = useState(false);
+  const [roundWinner, setRoundWinner] = useState<'player' | 'bot' | null>(null);
   const [playerHasInitialMeld, setPlayerHasInitialMeld] = useState(false);
   const [botHasInitialMeld, setBotHasInitialMeld] = useState(false);
 
@@ -69,11 +73,12 @@ export default function Table() {
     setDrawPile(remaining);
     setSelectedCards([]);
     setHasDrawn(false);
-    setGameOver(false);
+    setRoundOver(false);
+    setRoundWinner(null);
     setPlayerHasInitialMeld(false);
     setBotHasInitialMeld(false);
     
-    console.log('🎲 Nouvelle partie initialisée:', {
+    console.log('🎲 Nouvelle manche initialisée:', {
       pioche: remaining.length,
       défausse: firstDiscard?.id,
       joueur: playerHand.length,
@@ -81,8 +86,34 @@ export default function Table() {
     });
   };
 
+  const checkRoundEnd = (currentPlayer: Player, isBot: boolean) => {
+    if (currentPlayer.hand.length === 0) {
+      const winner = isBot ? 'bot' : 'player';
+      const loserHand = isBot ? player.hand : bot.hand;
+      const penalty = loserHand.reduce((sum, card) => sum + RANK_VALUES[card.rank], 0);
+      
+      setRoundWinner(winner);
+      setRoundOver(true);
+      
+      // Ajouter le score de la manche
+      if (winner === 'player') {
+        addRound(0, penalty, 'player');
+      } else {
+        addRound(penalty, 0, 'bot');
+      }
+      
+      toast({
+        title: winner === 'player' ? '🎉 Manche gagnée !' : '😔 Manche perdue',
+        description: `${winner === 'player' ? 'Vous avez' : 'Le bot a'} vidé sa main en premier`
+      });
+      
+      return true;
+    }
+    return false;
+  };
+
   const handleDrawCard = () => {
-    if (hasDrawn || gameOver) return;
+    if (hasDrawn || roundOver) return;
     
     const [drawnCard, newDrawPile] = draw(drawPile);
     
@@ -105,7 +136,7 @@ export default function Table() {
   };
 
   const handlePickDiscard = () => {
-    if (hasDrawn || gameOver) return;
+    if (hasDrawn || roundOver) return;
     
     const [pickedCard, newDiscardPile] = pickFromDiscard(discardPile);
     
@@ -128,7 +159,7 @@ export default function Table() {
   };
 
   const handleCardClick = (index: number) => {
-    if (!hasDrawn || gameOver) return;
+    if (!hasDrawn || roundOver) return;
     
     setSelectedCards(prev => {
       if (prev.includes(index)) {
@@ -174,9 +205,11 @@ export default function Table() {
 
     const newScore = player.score + points;
 
+    const newHand = player.hand.filter((_, i) => !selectedCards.includes(i));
+    
     setPlayer(prev => ({
       ...prev,
-      hand: prev.hand.filter((_, i) => !selectedCards.includes(i)),
+      hand: newHand,
       laid: [...prev.laid, combo],
       score: newScore
     }));
@@ -197,12 +230,9 @@ export default function Table() {
       description: message
     });
 
-    if (newScore >= 51 && playerHasInitialMeld) {
-      setGameOver(true);
-      toast({ 
-        title: "🎉 Victoire !", 
-        description: "Vous avez atteint 51 points !" 
-      });
+    // Vérifier si le joueur a vidé sa main
+    if (newHand.length === 0) {
+      setTimeout(() => checkRoundEnd({ ...player, hand: newHand }, false), 300);
     }
   };
 
@@ -236,10 +266,11 @@ export default function Table() {
 
     const discardedCard = player.hand[selectedCards[0]];
     const newDiscardPile = addToDiscard(discardPile, discardedCard);
+    const newHand = player.hand.filter((_, i) => i !== selectedCards[0]);
     
     setPlayer(prev => ({
       ...prev,
-      hand: prev.hand.filter((_, i) => i !== selectedCards[0])
+      hand: newHand
     }));
     setDiscardPile(newDiscardPile);
     setSelectedCards([]);
@@ -249,11 +280,16 @@ export default function Table() {
       description: `${discardedCard.rank}${discardedCard.suit} défaussée` 
     });
 
-    setTimeout(botTurn, 1000);
+    // Vérifier si le joueur a vidé sa main
+    if (newHand.length === 0) {
+      setTimeout(() => checkRoundEnd({ ...player, hand: newHand }, false), 300);
+    } else {
+      setTimeout(botTurn, 1000);
+    }
   };
 
   const botTurn = () => {
-    if (gameOver) return;
+    if (roundOver) return;
     
     // Le bot pioche
     const [drawnCard, newDrawPile] = draw(drawPile);
@@ -267,12 +303,18 @@ export default function Table() {
           const newHand = [...prev.hand, drawnCard];
           const randomIndex = Math.floor(Math.random() * newHand.length);
           const discardedCard = newHand[randomIndex];
+          const finalHand = newHand.filter((_, i) => i !== randomIndex);
           
           setDiscardPile(p => addToDiscard(p, discardedCard));
           
+          // Vérifier si le bot a vidé sa main
+          if (finalHand.length === 0) {
+            setTimeout(() => checkRoundEnd({ ...prev, hand: finalHand }, true), 300);
+          }
+          
           return {
             ...prev,
-            hand: newHand.filter((_, i) => i !== randomIndex)
+            hand: finalHand
           };
         });
       }, 500);
@@ -280,12 +322,32 @@ export default function Table() {
   };
 
   return (
-    <Layout gameInProgress={!gameOver && (player.hand.length > 0 || bot.hand.length > 0)}>
+    <Layout gameInProgress={!roundOver && (player.hand.length > 0 || bot.hand.length > 0)}>
+      {roundOver && roundWinner && (
+        <RoundScore
+          playerHand={player.hand}
+          botHand={bot.hand}
+          winner={roundWinner}
+          onNextRound={initGame}
+          onNewGame={() => {
+            resetGame();
+            initGame();
+          }}
+          playerTotal={gameScore.playerTotal}
+          botTotal={gameScore.botTotal}
+          isGameOver={isFullGameOver}
+          gameWinner={gameWinner}
+        />
+      )}
+      
       <div className="p-4">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-end items-center mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <div className="text-sm text-muted-foreground">
+              Manche {gameScore.rounds.length + 1} • Score global: {gameScore.playerTotal} - {gameScore.botTotal}
+            </div>
             <Button onClick={initGame} variant="outline">
-              Nouvelle partie
+              Nouvelle manche
             </Button>
           </div>
 
@@ -317,7 +379,7 @@ export default function Table() {
                 selectedCount={selectedCards.length}
                 onLayCombo={handleLayCombo}
                 onDiscard={handleDiscard}
-                disabled={gameOver}
+                disabled={roundOver}
               />
             </div>
 
