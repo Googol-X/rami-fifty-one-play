@@ -45,7 +45,7 @@ export default function Regles() {
                 </p>
                 <div className="mt-3 p-3 bg-orange-100 dark:bg-foreground/10 border border-orange-300 dark:border-foreground/20 rounded-lg">
                   <p className="text-gray-900 dark:text-foreground font-semibold text-sm">
-                    ⚠️ Important : Le premier dépôt doit obligatoirement inclure au moins <span className="bg-orange-200 dark:bg-foreground/20 px-1.5 py-0.5 rounded">une série</span> (3+ cartes de même valeur)
+                    SERIE OBLIGATOIRE
                   </p>
                 </div>
               </section>
