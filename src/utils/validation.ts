@@ -39,7 +39,7 @@ function isValidSet(cards: Card[]): boolean {
 /**
  * Vérifie si un groupe de cartes forme une suite (run)
  * Suite = 3+ cartes consécutives de même couleur
- * As peut être utilisé en A-2-3 uniquement (pas Q-K-A)
+ * As peut être utilisé en A-2-3 ou Q-K-A
  */
 function isValidRun(cards: Card[]): boolean {
   if (cards.length < 3) return false;
@@ -50,8 +50,19 @@ function isValidRun(cards: Card[]): boolean {
   
   // Trier les cartes par rang
   const sorted = [...cards].sort((a, b) => getRankIndex(a.rank) - getRankIndex(b.rank));
+  const ranks = sorted.map(c => c.rank);
   
-  // Vérifier la consécutivité
+  // Cas spécial Q-K-A : vérifier si on a Q, K, A
+  const hasQueen = ranks.includes('Q');
+  const hasKing = ranks.includes('K');
+  const hasAce = ranks.includes('A');
+  
+  if (hasAce && hasQueen && hasKing && cards.length === 3) {
+    // Q-K-A est valide
+    return true;
+  }
+  
+  // Vérifier la consécutivité normale (incluant A-2-3)
   for (let i = 1; i < sorted.length; i++) {
     const prevIndex = getRankIndex(sorted[i - 1].rank);
     const currIndex = getRankIndex(sorted[i].rank);

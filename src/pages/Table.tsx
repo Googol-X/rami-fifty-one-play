@@ -53,6 +53,7 @@ export default function Table() {
   const [playerHasInitialMeld, setPlayerHasInitialMeld] = useState(false);
   const [botHasInitialMeld, setBotHasInitialMeld] = useState(false);
   const [liveMessage, setLiveMessage] = useState<string>('');
+  const [pendingMelds, setPendingMelds] = useState<CardType[][]>([]);
 
   useEffect(() => {
     initGame();
@@ -81,6 +82,7 @@ export default function Table() {
     setRoundWinner(null);
     setPlayerHasInitialMeld(false);
     setBotHasInitialMeld(false);
+    setPendingMelds([]);
     
     console.log('🎲 Nouvelle manche initialisée:', {
       pioche: remaining.length,
@@ -175,7 +177,8 @@ export default function Table() {
     });
   };
 
-  const handleLayCombo = () => {
+  // Ajouter une combinaison au panier
+  const addSelectedMeld = () => {
     if (!hasDrawn) {
       toast({ 
         title: "Action impossible", 
@@ -198,49 +201,104 @@ export default function Table() {
       return;
     }
 
+    // Ajouter au panier et retirer de la main
+    const newHand = player.hand.filter((_, i) => !selectedCards.includes(i));
+    setPendingMelds(prev => [...prev, combo]);
+    setPlayer(prev => ({ ...prev, hand: newHand }));
+    setSelectedCards([]);
+    
     const points = validation.points || 0;
+    setLiveMessage(`✅ Combinaison ajoutée au panier: ${validation.details} (+${points} points)`);
+    toast({ 
+      title: "✅ Ajouté au panier", 
+      description: `${validation.details} (+${points} points)`
+    });
+  };
 
-    // Vérifier le seuil de 51 pour le dépôt initial
-    if (!playerHasInitialMeld && points < 51) {
+  // Retirer la dernière combinaison du panier
+  const undoLastPending = () => {
+    if (pendingMelds.length === 0) return;
+    
+    const lastMeld = pendingMelds[pendingMelds.length - 1];
+    setPendingMelds(prev => prev.slice(0, -1));
+    setPlayer(prev => ({ ...prev, hand: [...prev.hand, ...lastMeld] }));
+    
+    setLiveMessage("↩️ Dernière combinaison annulée");
+    toast({ 
+      title: "↩️ Annulé", 
+      description: "Dernière combinaison retirée du panier"
+    });
+  };
+
+  // Vider tout le panier
+  const clearPending = () => {
+    if (pendingMelds.length === 0) return;
+    
+    const allCards = pendingMelds.flat();
+    setPendingMelds([]);
+    setPlayer(prev => ({ ...prev, hand: [...prev.hand, ...allCards] }));
+    
+    setLiveMessage("🗑️ Panier vidé");
+    toast({ 
+      title: "🗑️ Panier vidé", 
+      description: "Toutes les combinaisons retirées"
+    });
+  };
+
+  // Valider le panier (vérifier seuil 51 si premier dépôt)
+  const validatePending = () => {
+    if (pendingMelds.length === 0) {
       toast({ 
-        title: "Dépôt initial insuffisant",
-        description: `Premier dépôt requis: minimum 51 points (actuellement ${points})`,
+        title: "Panier vide", 
+        description: "Ajoutez au moins une combinaison", 
         variant: "destructive" 
       });
       return;
     }
 
-    const newScore = player.score + points;
+    // Calculer le total de points
+    const totalPoints = pendingMelds.reduce((sum, meld) => {
+      const validation = validateMeld(meld);
+      return sum + (validation.points || 0);
+    }, 0);
 
-    const newHand = player.hand.filter((_, i) => !selectedCards.includes(i));
-    
+    // Vérifier le seuil de 51 pour le dépôt initial
+    if (!playerHasInitialMeld && totalPoints < 51) {
+      toast({ 
+        title: "❌ Dépôt initial insuffisant",
+        description: `Premier dépôt requis: minimum 51 points (actuellement ${totalPoints} points)`,
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Valider: déplacer dans yourMelds et mettre à jour le score
+    const newScore = player.score + totalPoints;
     setPlayer(prev => ({
       ...prev,
-      hand: newHand,
-      laid: [...prev.laid, combo],
+      laid: [...prev.laid, ...pendingMelds],
       score: newScore
     }));
 
-    // Marquer que le joueur a fait son dépôt initial
     if (!playerHasInitialMeld) {
       setPlayerHasInitialMeld(true);
     }
 
-    setSelectedCards([]);
+    setPendingMelds([]);
     
     const message = !playerHasInitialMeld 
-      ? `🎯 Dépôt initial réussi ! ${validation.details} : +${points} points`
-      : `${validation.details} : +${points} points (total: ${newScore})`;
+      ? `🎯 Dépôt initial validé ! ${totalPoints} points (${pendingMelds.length} combinaisons)`
+      : `🎯 Dépôt validé ! +${totalPoints} points (total: ${newScore})`;
     
-    setLiveMessage(`Combinaison déposée. ${message}`);
+    setLiveMessage(message);
     toast({ 
-      title: "✓ Combinaison déposée", 
+      title: "🎯 Validé", 
       description: message
     });
 
     // Vérifier si le joueur a vidé sa main
-    if (newHand.length === 0) {
-      setTimeout(() => checkRoundEnd({ ...player, hand: newHand }, false), 300);
+    if (player.hand.length === 0) {
+      setTimeout(() => checkRoundEnd({ ...player, hand: [] }, false), 300);
     }
   };
 
@@ -249,6 +307,16 @@ export default function Table() {
       toast({ 
         title: "Action impossible", 
         description: "Piochez d'abord une carte", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Bloquer la défausse si le panier n'est pas vide
+    if (pendingMelds.length > 0) {
+      toast({ 
+        title: "Panier non validé", 
+        description: "Validez ou videz votre panier avant de défausser", 
         variant: "destructive" 
       });
       return;
@@ -436,10 +504,69 @@ export default function Table() {
                 hasInitialMeld={playerHasInitialMeld}
               />
 
+              {/* Panier de dépôts */}
+              {pendingMelds.length > 0 && (
+                <div className="bg-primary/5 border-2 border-primary/20 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      🧺 Panier de dépôt
+                    </h3>
+                    <span className="text-sm font-medium text-primary">
+                      {pendingMelds.reduce((sum, meld) => {
+                        const validation = validateMeld(meld);
+                        return sum + (validation.points || 0);
+                      }, 0)} points
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2 mb-3">
+                    {pendingMelds.map((meld, i) => {
+                      const validation = validateMeld(meld);
+                      return (
+                        <div key={i} className="bg-background/50 rounded-lg p-2 text-sm">
+                          <span className="text-muted-foreground">Combo {i + 1}: </span>
+                          {meld.map(c => `${c.rank}${c.suit}`).join(' ')}
+                          <span className="ml-2 text-xs text-primary">
+                            (+{validation.points} pts)
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      onClick={validatePending} 
+                      size="sm"
+                      className="flex-1"
+                      aria-label="Valider le panier de dépôts"
+                    >
+                      🎯 Valider
+                    </Button>
+                    <Button 
+                      onClick={undoLastPending} 
+                      size="sm"
+                      variant="outline"
+                      aria-label="Annuler la dernière combinaison"
+                    >
+                      ↩️ Annuler
+                    </Button>
+                    <Button 
+                      onClick={clearPending} 
+                      size="sm"
+                      variant="destructive"
+                      aria-label="Vider tout le panier"
+                    >
+                      🗑️ Vider
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <GameControls
                 hasDrawn={hasDrawn}
                 selectedCount={selectedCards.length}
-                onLayCombo={handleLayCombo}
+                onLayCombo={addSelectedMeld}
                 onDiscard={handleDiscard}
                 disabled={roundOver}
               />
