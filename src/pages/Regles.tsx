@@ -36,101 +36,101 @@ export default function Regles() {
             </nav>
 
             <div className="space-y-8 text-base">
-              <section id="depot" className="bg-primary/5 border-l-4 border-primary rounded-r-lg p-4">
+              <section id="depot" className="bg-card/50 border-l-4 border-foreground/30 rounded-r-lg p-4">
                 <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
                   <span>🎯</span> Dépôt initial 51
                 </h2>
                 <p className="text-foreground leading-relaxed mb-2">
-                  Votre première combinaison doit totaliser au moins <span className="font-bold text-primary text-lg">51 points</span>. Les dépôts suivants sont libres.
+                  Votre première combinaison doit totaliser au moins <span className="font-bold text-foreground text-lg bg-primary/20 px-2 py-0.5 rounded">51 points</span>. Les dépôts suivants sont libres.
                 </p>
-                <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                <div className="mt-3 p-3 bg-foreground/10 border border-foreground/20 rounded-lg">
                   <p className="text-foreground font-semibold text-sm">
-                    ⚠️ Important : Le premier dépôt doit obligatoirement inclure au moins <span className="text-orange-600 dark:text-orange-400">une série</span> (3+ cartes de même valeur)
+                    ⚠️ Important : Le premier dépôt doit obligatoirement inclure au moins <span className="bg-foreground/20 px-1.5 py-0.5 rounded">une série</span> (3+ cartes de même valeur)
                   </p>
                 </div>
               </section>
 
-              <section id="combos" className="bg-secondary/30 border-l-4 border-secondary rounded-r-lg p-4">
+              <section id="combos" className="bg-card/50 border-l-4 border-foreground/30 rounded-r-lg p-4">
                 <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
                   <span>✨</span> Combinaisons
                 </h2>
                 <div className="space-y-4">
-                  <div className="bg-background/80 p-3 rounded-lg">
+                  <div className="bg-background/80 border border-foreground/10 p-3 rounded-lg">
                     <p className="text-foreground font-semibold mb-1">
-                      <span className="text-primary">Série :</span> 3+ cartes même valeur, couleurs différentes
+                      Série : 3+ cartes même valeur, couleurs différentes
                     </p>
-                    <p className="text-foreground/80 text-sm">
+                    <p className="text-foreground/70 text-sm">
                       Exemple : 7♠ 7♥ 7♦
                     </p>
                   </div>
-                  <div className="bg-background/80 p-3 rounded-lg">
+                  <div className="bg-background/80 border border-foreground/10 p-3 rounded-lg">
                     <p className="text-foreground font-semibold mb-1">
-                      <span className="text-primary">Suite :</span> 3+ cartes consécutives, même couleur
+                      Suite : 3+ cartes consécutives, même couleur
                     </p>
-                    <p className="text-foreground/80 text-sm">
+                    <p className="text-foreground/70 text-sm">
                       Exemple : 5♥ 6♥ 7♥
                     </p>
                   </div>
-                  <div className="bg-background/80 p-3 rounded-lg">
+                  <div className="bg-background/80 border border-foreground/10 p-3 rounded-lg">
                     <p className="text-foreground font-semibold mb-1">
-                      <span className="text-primary">As :</span> position basse (A-2-3) ou haute (Q-K-A)
+                      As : position basse (A-2-3) ou haute (Q-K-A)
                     </p>
-                    <p className="text-foreground/80 text-sm">
+                    <p className="text-foreground/70 text-sm">
                       L&apos;As peut être utilisé en position basse (A-2-3) ou haute (Q-K-A)
                     </p>
                   </div>
                 </div>
               </section>
 
-              <section id="tour" className="bg-accent/20 border-l-4 border-accent rounded-r-lg p-4">
+              <section id="tour" className="bg-card/50 border-l-4 border-foreground/30 rounded-r-lg p-4">
                 <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
                   <span>🎮</span> Tour de jeu
                 </h2>
                 <ol className="space-y-2">
                   <li className="text-foreground">
-                    <span className="font-bold text-primary">1.</span> Piochez une carte (de la pioche ou de la défausse)
+                    <span className="font-bold bg-primary/20 px-1.5 py-0.5 rounded">1.</span> Piochez une carte (de la pioche ou de la défausse)
                   </li>
                   <li className="text-foreground">
-                    <span className="font-bold text-primary">2.</span> Déposez vos combinaisons (optionnel)
+                    <span className="font-bold bg-primary/20 px-1.5 py-0.5 rounded">2.</span> Déposez vos combinaisons (optionnel)
                   </li>
                   <li className="text-foreground">
-                    <span className="font-bold text-primary">3.</span> Défaussez exactement 1 carte
+                    <span className="font-bold bg-primary/20 px-1.5 py-0.5 rounded">3.</span> Défaussez exactement 1 carte
                   </li>
                 </ol>
-                <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <div className="mt-3 p-3 bg-foreground/10 border border-foreground/20 rounded-lg">
                   <p className="text-foreground text-sm">
                     💡 Vous pouvez aussi ajouter des cartes aux combinaisons déjà posées sur la table (vôtres ou adversaire)
                   </p>
                 </div>
               </section>
 
-              <section id="fin" className="bg-destructive/10 border-l-4 border-destructive rounded-r-lg p-4">
+              <section id="fin" className="bg-card/50 border-l-4 border-foreground/30 rounded-r-lg p-4">
                 <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
                   <span>🏁</span> Fin de manche
                 </h2>
                 <p className="text-foreground leading-relaxed">
-                  La manche se termine quand un joueur vide sa main. Les cartes restantes de l&apos;adversaire (appelées <span className="font-bold text-destructive">"orphelines"</span>) deviennent des points de pénalité.
+                  La manche se termine quand un joueur vide sa main. Les cartes restantes de l&apos;adversaire (appelées <span className="font-bold bg-foreground/20 px-1.5 py-0.5 rounded">"orphelines"</span>) deviennent des points de pénalité.
                 </p>
               </section>
 
-              <section id="score" className="bg-green-500/10 border-l-4 border-green-500 rounded-r-lg p-4">
+              <section id="score" className="bg-card/50 border-l-4 border-foreground/30 rounded-r-lg p-4">
                 <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 flex items-center gap-2">
                   <span>💰</span> Valeurs des cartes
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-                  <div className="bg-background/80 p-3 rounded-lg">
-                    <p className="font-bold text-foreground">As : <span className="text-primary">11 pts</span></p>
+                  <div className="bg-background/80 border border-foreground/10 p-3 rounded-lg">
+                    <p className="font-bold text-foreground">As : <span className="bg-primary/20 px-1.5 py-0.5 rounded">11 pts</span></p>
                   </div>
-                  <div className="bg-background/80 p-3 rounded-lg">
-                    <p className="font-bold text-foreground">Figures (J, Q, K) : <span className="text-primary">10 pts</span></p>
+                  <div className="bg-background/80 border border-foreground/10 p-3 rounded-lg">
+                    <p className="font-bold text-foreground">Figures (J, Q, K) : <span className="bg-primary/20 px-1.5 py-0.5 rounded">10 pts</span></p>
                   </div>
-                  <div className="bg-background/80 p-3 rounded-lg">
-                    <p className="font-bold text-foreground">2 à 10 : <span className="text-primary">valeur nominale</span></p>
+                  <div className="bg-background/80 border border-foreground/10 p-3 rounded-lg">
+                    <p className="font-bold text-foreground">2 à 10 : <span className="bg-primary/20 px-1.5 py-0.5 rounded">valeur nominale</span></p>
                   </div>
                 </div>
-                <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <div className="mt-3 p-3 bg-foreground/10 border border-foreground/20 rounded-lg">
                   <p className="text-foreground font-semibold">
-                    🏆 La partie se termine quand un joueur atteint <span className="text-lg text-primary">200 points</span>
+                    🏆 La partie se termine quand un joueur atteint <span className="text-lg bg-primary/20 px-2 py-0.5 rounded">200 points</span>
                   </p>
                 </div>
               </section>
