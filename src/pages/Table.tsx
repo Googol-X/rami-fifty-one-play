@@ -14,6 +14,7 @@ import {
 import { GameHand } from '@/components/GameHand';
 import { GamePile } from '@/components/GamePile';
 import { GameScore } from '@/components/GameScore';
+import { GameControls } from '@/components/GameControls';
 import { Layout } from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
 
@@ -80,14 +81,21 @@ export default function Table() {
     const [drawnCard, newDrawPile] = draw(drawPile);
     
     if (!drawnCard) {
-      toast({ title: "Pioche vide", description: "Aucune carte à piocher" });
+      toast({ 
+        title: "Pioche vide", 
+        description: "Aucune carte à piocher",
+        variant: "destructive"
+      });
       return;
     }
 
     setPlayer(prev => ({ ...prev, hand: [...prev.hand, drawnCard] }));
     setDrawPile(newDrawPile);
     setHasDrawn(true);
-    toast({ title: "Carte piochée", description: `Vous avez pioché ${drawnCard.rank}${drawnCard.suit}` });
+    toast({ 
+      title: "✓ Carte piochée", 
+      description: `${drawnCard.rank}${drawnCard.suit} ajoutée à votre main` 
+    });
   };
 
   const handlePickDiscard = () => {
@@ -96,14 +104,21 @@ export default function Table() {
     const [pickedCard, newDiscardPile] = pickFromDiscard(discardPile);
     
     if (!pickedCard) {
-      toast({ title: "Défausse vide", description: "Aucune carte à récupérer" });
+      toast({ 
+        title: "Défausse vide", 
+        description: "Aucune carte à récupérer",
+        variant: "destructive"
+      });
       return;
     }
 
     setPlayer(prev => ({ ...prev, hand: [...prev.hand, pickedCard] }));
     setDiscardPile(newDiscardPile);
     setHasDrawn(true);
-    toast({ title: "Défausse récupérée", description: `Vous avez pris ${pickedCard.rank}${pickedCard.suit}` });
+    toast({ 
+      title: "✓ Défausse prise", 
+      description: `${pickedCard.rank}${pickedCard.suit} ajoutée à votre main` 
+    });
   };
 
   const handleCardClick = (index: number) => {
@@ -118,33 +133,75 @@ export default function Table() {
   };
 
   const handleLayCombo = () => {
-    if (selectedCards.length < 3 || gameOver) {
-      toast({ title: "Combinaison invalide", description: "Sélectionnez au moins 3 cartes", variant: "destructive" });
+    if (!hasDrawn) {
+      toast({ 
+        title: "Action impossible", 
+        description: "Piochez d'abord une carte", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (selectedCards.length < 3) {
+      toast({ 
+        title: "Combinaison invalide", 
+        description: "Sélectionnez au moins 3 cartes", 
+        variant: "destructive" 
+      });
       return;
     }
 
     const combo = selectedCards.map(i => player.hand[i]);
     const points = combo.reduce((sum, card) => sum + RANK_VALUES[card.rank], 0);
+    const newScore = player.score + points;
 
     setPlayer(prev => ({
       ...prev,
       hand: prev.hand.filter((_, i) => !selectedCards.includes(i)),
       laid: [...prev.laid, combo],
-      score: prev.score + points
+      score: newScore
     }));
 
     setSelectedCards([]);
-    toast({ title: "Combinaison déposée", description: `+${points} points` });
+    toast({ 
+      title: "✓ Combinaison déposée", 
+      description: `+${points} points (total: ${newScore})` 
+    });
 
-    if (player.score + points >= 51) {
+    if (newScore >= 51) {
       setGameOver(true);
-      toast({ title: "🎉 Victoire !", description: "Vous avez atteint 51 points !" });
+      toast({ 
+        title: "🎉 Victoire !", 
+        description: "Vous avez atteint 51 points !" 
+      });
     }
   };
 
   const handleDiscard = () => {
+    if (!hasDrawn) {
+      toast({ 
+        title: "Action impossible", 
+        description: "Piochez d'abord une carte", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (player.hand.length === 0) {
+      toast({ 
+        title: "Main vide", 
+        description: "Vous n'avez plus de cartes", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     if (selectedCards.length !== 1) {
-      toast({ title: "Sélection invalide", description: "Sélectionnez exactement 1 carte à défausser", variant: "destructive" });
+      toast({ 
+        title: "Sélection invalide", 
+        description: "Sélectionnez exactement 1 carte à défausser", 
+        variant: "destructive" 
+      });
       return;
     }
 
@@ -158,7 +215,10 @@ export default function Table() {
     setDiscardPile(newDiscardPile);
     setSelectedCards([]);
     setHasDrawn(false);
-    toast({ title: "Carte défaussée", description: "Tour terminé" });
+    toast({ 
+      title: "✓ Tour terminé", 
+      description: `${discardedCard.rank}${discardedCard.suit} défaussée` 
+    });
 
     setTimeout(botTurn, 1000);
   };
@@ -218,14 +278,13 @@ export default function Table() {
                 title="Votre main"
               />
 
-              <div className="flex flex-wrap gap-3 justify-center">
-                <Button onClick={handleLayCombo} disabled={!hasDrawn || selectedCards.length < 3}>
-                  Déposer combinaison ({selectedCards.length})
-                </Button>
-                <Button onClick={handleDiscard} disabled={!hasDrawn || selectedCards.length !== 1} variant="secondary">
-                  Défausser et finir le tour
-                </Button>
-              </div>
+              <GameControls
+                hasDrawn={hasDrawn}
+                selectedCount={selectedCards.length}
+                onLayCombo={handleLayCombo}
+                onDiscard={handleDiscard}
+                disabled={gameOver}
+              />
             </div>
 
             <div className="space-y-6">
