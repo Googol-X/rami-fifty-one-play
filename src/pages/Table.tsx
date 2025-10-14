@@ -11,7 +11,7 @@ import {
   pickFromDiscard,
   peekDiscard 
 } from '@/utils/deck';
-import { validateMeld } from '@/utils/validation';
+import { validateMeld, canExtendMeld, hasSetInMelds, computeDeadwood } from '@/utils/validation';
 import { findValidCombos, evaluateCardUtility } from '@/utils/botAI';
 import { GameHand } from '@/components/GameHand';
 import { HandReorder } from '@/components/HandReorder';
@@ -54,6 +54,7 @@ export default function Table() {
   const [botHasInitialMeld, setBotHasInitialMeld] = useState(false);
   const [liveMessage, setLiveMessage] = useState<string>('');
   const [pendingMelds, setPendingMelds] = useState<CardType[][]>([]);
+  const [extendingMeld, setExtendingMeld] = useState<{ owner: 'player' | 'bot', index: number } | null>(null);
 
   useEffect(() => {
     initGame();
@@ -83,6 +84,7 @@ export default function Table() {
     setPlayerHasInitialMeld(false);
     setBotHasInitialMeld(false);
     setPendingMelds([]);
+    setExtendingMeld(null);
     
     console.log('🎲 Nouvelle manche initialisée:', {
       pioche: remaining.length,
@@ -169,11 +171,66 @@ export default function Table() {
   const handleCardClick = (index: number) => {
     if (!hasDrawn || roundOver) return;
     
+    // Si on est en train d'étendre une meld, gérer l'ajout
+    if (extendingMeld) {
+      handleExtendMeld(index);
+      return;
+    }
+    
     setSelectedCards(prev => {
       if (prev.includes(index)) {
         return prev.filter(i => i !== index);
       }
       return [...prev, index];
+    });
+  };
+
+  // Gérer l'extension d'une meld existante
+  const handleExtendMeld = (cardIndex: number) => {
+    if (!extendingMeld) return;
+
+    const card = player.hand[cardIndex];
+    const { owner, index: meldIndex } = extendingMeld;
+    
+    const targetMeld = owner === 'player' ? player.laid[meldIndex] : bot.laid[meldIndex];
+    
+    if (!canExtendMeld(targetMeld, card)) {
+      toast({
+        title: "❌ Extension invalide",
+        description: "Cette carte ne peut pas être ajoutée à cette combinaison",
+        variant: "destructive"
+      });
+      setExtendingMeld(null);
+      return;
+    }
+
+    // Ajouter la carte à la meld
+    const newHand = player.hand.filter((_, i) => i !== cardIndex);
+    
+    if (owner === 'player') {
+      const newLaid = [...player.laid];
+      newLaid[meldIndex] = [...newLaid[meldIndex], card];
+      setPlayer(prev => ({
+        ...prev,
+        hand: newHand,
+        laid: newLaid,
+        score: prev.score + RANK_VALUES[card.rank]
+      }));
+    } else {
+      const newLaid = [...bot.laid];
+      newLaid[meldIndex] = [...newLaid[meldIndex], card];
+      setBot(prev => ({
+        ...prev,
+        laid: newLaid
+      }));
+      setPlayer(prev => ({ ...prev, hand: newHand }));
+    }
+
+    setExtendingMeld(null);
+    setLiveMessage(`✅ ${card.rank}${card.suit} ajoutée à la combinaison #${meldIndex + 1}`);
+    toast({
+      title: "✅ Carte ajoutée",
+      description: `${card.rank}${card.suit} ajoutée à la combinaison ${owner === 'player' ? 'vôtre' : 'du bot'}`
     });
   };
 
@@ -245,7 +302,7 @@ export default function Table() {
     });
   };
 
-  // Valider le panier (vérifier seuil 51 si premier dépôt)
+  // Valider le panier (vérifier seuil 51 + série obligatoire si premier dépôt)
   const validatePending = () => {
     if (pendingMelds.length === 0) {
       toast({ 
@@ -262,14 +319,26 @@ export default function Table() {
       return sum + (validation.points || 0);
     }, 0);
 
-    // Vérifier le seuil de 51 pour le dépôt initial
-    if (!playerHasInitialMeld && totalPoints < 51) {
-      toast({ 
-        title: "❌ Dépôt initial insuffisant",
-        description: `Premier dépôt requis: minimum 51 points (actuellement ${totalPoints} points)`,
-        variant: "destructive" 
-      });
-      return;
+    // Vérifier le seuil de 51 ET la série obligatoire pour le dépôt initial
+    if (!playerHasInitialMeld) {
+      if (totalPoints < 51) {
+        toast({ 
+          title: "❌ Dépôt initial insuffisant",
+          description: `Premier dépôt requis: minimum 51 points (actuellement ${totalPoints} points)`,
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      // Vérifier la présence d'au moins une série
+      if (!hasSetInMelds(pendingMelds)) {
+        toast({ 
+          title: "❌ Série obligatoire manquante",
+          description: `Premier dépôt requis: total ≥51 OK (${totalPoints} pts) mais au moins une série (3+ même rang) est obligatoire`,
+          variant: "destructive" 
+        });
+        return;
+      }
     }
 
     // Valider: déplacer dans yourMelds et mettre à jour le score
@@ -596,19 +665,109 @@ export default function Table() {
                     🎯 Dépôt initial requis
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Votre première combinaison doit totaliser au moins <span className="font-bold text-foreground">51 points</span>
+                    Minimum <span className="font-bold text-foreground">51 points</span> + au moins <span className="font-bold text-foreground">une série</span> (3+ même rang)
                   </p>
                 </div>
               )}
+
+              {/* Orphelines du bot */}
+              {bot.hand.length > 0 && (
+                <div className="bg-destructive/10 border-2 border-destructive/30 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-destructive mb-2">
+                    🧮 Orphelines bot
+                  </h3>
+                  {(() => {
+                    const deadwood = computeDeadwood(bot.hand);
+                    return (
+                      <div className="text-xs text-muted-foreground">
+                        {deadwood.length} carte(s): {deadwood.map(c => `${c.rank}${c.suit}`).join(', ')}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
               
+              {/* Melds du joueur */}
               {player.laid.length > 0 && (
                 <div className="bg-secondary/30 rounded-xl p-4 border-2 border-border">
                   <h3 className="text-lg font-semibold mb-3">Vos combinaisons</h3>
-                  {player.laid.map((combo, i) => (
-                    <div key={i} className="text-sm text-muted-foreground mb-1">
-                      Combo {i + 1}: {combo.map(c => `${c.rank}${c.suit}`).join(' ')}
-                    </div>
-                  ))}
+                  {player.laid.map((combo, i) => {
+                    const validation = validateMeld(combo);
+                    return (
+                      <div key={i} className="mb-3 p-2 bg-background/50 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">
+                            Combo {i + 1} ({validation.type === 'set' ? 'Série' : 'Suite'})
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setExtendingMeld({ owner: 'player', index: i })}
+                            disabled={!hasDrawn || extendingMeld !== null}
+                            className="h-6 text-xs"
+                          >
+                            + Ajouter
+                          </Button>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {combo.map(c => `${c.rank}${c.suit}`).join(' ')}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Melds du bot */}
+              {bot.laid.length > 0 && (
+                <div className="bg-secondary/30 rounded-xl p-4 border-2 border-border">
+                  <h3 className="text-lg font-semibold mb-3">Combinaisons du bot</h3>
+                  {bot.laid.map((combo, i) => {
+                    const validation = validateMeld(combo);
+                    return (
+                      <div key={i} className="mb-3 p-2 bg-background/50 rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">
+                            Combo {i + 1} ({validation.type === 'set' ? 'Série' : 'Suite'})
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setExtendingMeld({ owner: 'bot', index: i })}
+                            disabled={!hasDrawn || extendingMeld !== null}
+                            className="h-6 text-xs"
+                          >
+                            + Ajouter
+                          </Button>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {combo.map(c => `${c.rank}${c.suit}`).join(' ')}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Message mode extension */}
+              {extendingMeld && (
+                <div className="bg-primary/10 border-2 border-primary/30 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold text-primary">
+                      📌 Mode extension activé
+                    </h3>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setExtendingMeld(null)}
+                      className="h-6 text-xs"
+                    >
+                      Annuler
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Cliquez sur une carte de votre main pour l'ajouter à la combo {extendingMeld.index + 1} ({extendingMeld.owner === 'player' ? 'vôtre' : 'du bot'})
+                  </p>
                 </div>
               )}
             </div>

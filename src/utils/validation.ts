@@ -229,8 +229,163 @@ export function testValidation() {
   console.log('\n✅ Tests terminés');
 }
 
+/**
+ * Vérifie si une carte peut étendre une meld existante
+ * Run : prolonger par extrémité (même couleur)
+ * Set : même rang, couleur différente
+ */
+export function canExtendMeld(meld: Card[], card: Card): boolean {
+  if (meld.length === 0) return false;
+  
+  const validation = validateMeld(meld);
+  if (!validation.valid) return false;
+  
+  const type = validation.type;
+  
+  if (type === 'set') {
+    // Série : même rang, couleur différente
+    const sameRank = meld.every(c => c.rank === card.rank);
+    const differentSuit = !meld.some(c => c.suit === card.suit);
+    return sameRank && differentSuit && meld.length < 4;
+  }
+  
+  if (type === 'run') {
+    // Suite : même couleur, prolonger par extrémité
+    const sameSuit = meld.every(c => c.suit === card.suit);
+    if (!sameSuit || card.suit !== meld[0].suit) return false;
+    
+    const sorted = [...meld].sort((a, b) => getRankIndex(a.rank) - getRankIndex(b.rank));
+    const firstRank = sorted[0].rank;
+    const lastRank = sorted[sorted.length - 1].rank;
+    const cardIndex = getRankIndex(card.rank);
+    const firstIndex = getRankIndex(firstRank);
+    const lastIndex = getRankIndex(lastRank);
+    
+    // Cas spécial Q-K-A
+    const hasQueen = sorted.some(c => c.rank === 'Q');
+    const hasKing = sorted.some(c => c.rank === 'K');
+    const hasAce = sorted.some(c => c.rank === 'A');
+    
+    if (hasQueen && hasKing && hasAce) {
+      // Q-K-A complet, ne peut pas être étendu
+      return false;
+    }
+    
+    if (hasQueen && hasKing && card.rank === 'A') {
+      // Q-K + A → Q-K-A
+      return true;
+    }
+    
+    if (hasKing && hasAce && card.rank === 'Q') {
+      // K-A + Q → Q-K-A (mais suite inversée, à vérifier)
+      return false; // On autorise seulement dans l'ordre
+    }
+    
+    // Cas A-2-3 : As en position basse
+    if (firstRank === 'A' && lastRank === '3' && card.rank === '4') {
+      return true;
+    }
+    
+    if (firstRank === 'A' && lastRank === '2' && card.rank === '3') {
+      return true;
+    }
+    
+    // Prolongation normale : carte juste avant ou juste après
+    return cardIndex === firstIndex - 1 || cardIndex === lastIndex + 1;
+  }
+  
+  return false;
+}
+
+/**
+ * Vérifie si les melds contiennent au moins une série (set)
+ */
+export function hasSetInMelds(melds: Card[][]): boolean {
+  return melds.some(meld => {
+    const validation = validateMeld(meld);
+    return validation.valid && validation.type === 'set';
+  });
+}
+
+/**
+ * Calcule les cartes "orphelines" qui ne peuvent pas être couvertes par des combinaisons
+ * Utilise une approche greedy : d'abord suites longues, puis séries
+ */
+export function computeDeadwood(hand: Card[]): Card[] {
+  if (hand.length === 0) return [];
+  
+  const remaining = [...hand];
+  const used = new Set<string>();
+  
+  // 1. Chercher les suites (runs) par couleur
+  const suits: Suit[] = ['♠', '♥', '♦', '♣'];
+  for (const suit of suits) {
+    const suitCards = remaining
+      .filter(c => c.suit === suit && !used.has(c.id))
+      .sort((a, b) => getRankIndex(a.rank) - getRankIndex(b.rank));
+    
+    if (suitCards.length < 3) continue;
+    
+    // Chercher la plus longue suite
+    let i = 0;
+    while (i < suitCards.length) {
+      const run: Card[] = [suitCards[i]];
+      let j = i + 1;
+      
+      while (j < suitCards.length) {
+        const prevIndex = getRankIndex(suitCards[j - 1].rank);
+        const currIndex = getRankIndex(suitCards[j].rank);
+        
+        if (currIndex === prevIndex + 1) {
+          run.push(suitCards[j]);
+          j++;
+        } else {
+          break;
+        }
+      }
+      
+      // Si suite valide (≥3), marquer comme utilisé
+      if (run.length >= 3) {
+        run.forEach(c => used.add(c.id));
+      }
+      
+      i = j > i ? j : i + 1;
+    }
+    
+    // Cas spécial Q-K-A
+    const hasQ = suitCards.find(c => c.rank === 'Q' && !used.has(c.id));
+    const hasK = suitCards.find(c => c.rank === 'K' && !used.has(c.id));
+    const hasA = suitCards.find(c => c.rank === 'A' && !used.has(c.id));
+    
+    if (hasQ && hasK && hasA) {
+      used.add(hasQ.id);
+      used.add(hasK.id);
+      used.add(hasA.id);
+    }
+  }
+  
+  // 2. Chercher les séries (sets) par rang
+  const ranks: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  for (const rank of ranks) {
+    const rankCards = remaining.filter(c => c.rank === rank && !used.has(c.id));
+    
+    if (rankCards.length >= 3) {
+      // Vérifier couleurs uniques
+      const uniqueSuits = new Set(rankCards.map(c => c.suit));
+      if (uniqueSuits.size === rankCards.length) {
+        rankCards.forEach(c => used.add(c.id));
+      }
+    }
+  }
+  
+  // 3. Retourner les cartes non utilisées
+  return remaining.filter(c => !used.has(c.id));
+}
+
 // Exposer dans window pour tests en console
 if (typeof window !== 'undefined') {
   (window as any).testValidation = testValidation;
   (window as any).validateMeld = validateMeld;
+  (window as any).canExtendMeld = canExtendMeld;
+  (window as any).computeDeadwood = computeDeadwood;
 }
