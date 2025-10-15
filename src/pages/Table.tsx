@@ -392,15 +392,6 @@ export default function Table() {
       return;
     }
 
-    if (player.hand.length === 0) {
-      toast({ 
-        title: "Main vide", 
-        description: "Vous n'avez plus de cartes", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
     if (selectedCards.length !== 1) {
       toast({ 
         title: "Sélection invalide", 
