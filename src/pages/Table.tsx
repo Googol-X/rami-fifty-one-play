@@ -22,6 +22,7 @@ import { ComboPreview } from '@/components/ComboPreview';
 import { RoundScore } from '@/components/RoundScore';
 import { LiveAnnouncer } from '@/components/LiveAnnouncer';
 import { Layout } from '@/components/Layout';
+import { Card } from '@/components/Card';
 import { useToast } from '@/hooks/use-toast';
 import { useGameScore } from '@/hooks/useGameScore';
 
@@ -694,10 +695,10 @@ export default function Table() {
                   {player.laid.map((combo, i) => {
                     const validation = validateMeld(combo);
                     return (
-                      <div key={i} className="mb-3 p-2 bg-background/50 rounded-lg">
-                        <div className="flex items-center justify-between mb-1">
+                      <div key={i} className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-medium">
-                            Combo {i + 1} ({validation.type === 'set' ? 'Série' : 'Suite'})
+                            Combo {i + 1} ({validation.type === 'set' ? 'Série' : 'Suite'}) • {validation.points} pts
                           </span>
                           <Button
                             size="sm"
@@ -709,8 +710,10 @@ export default function Table() {
                             + Ajouter
                           </Button>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {combo.map(c => `${c.rank}${c.suit}`).join(' ')}
+                        <div className="flex flex-wrap gap-1">
+                          {combo.map((card, cardIdx) => (
+                            <Card key={card.id} card={card} className="w-12 h-16 text-xs" />
+                          ))}
                         </div>
                       </div>
                     );
@@ -725,10 +728,10 @@ export default function Table() {
                   {bot.laid.map((combo, i) => {
                     const validation = validateMeld(combo);
                     return (
-                      <div key={i} className="mb-3 p-2 bg-background/50 rounded-lg">
-                        <div className="flex items-center justify-between mb-1">
+                      <div key={i} className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-medium">
-                            Combo {i + 1} ({validation.type === 'set' ? 'Série' : 'Suite'})
+                            Combo {i + 1} ({validation.type === 'set' ? 'Série' : 'Suite'}) • {validation.points} pts
                           </span>
                           <Button
                             size="sm"
@@ -740,8 +743,10 @@ export default function Table() {
                             + Ajouter
                           </Button>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {combo.map(c => `${c.rank}${c.suit}`).join(' ')}
+                        <div className="flex flex-wrap gap-1">
+                          {combo.map((card, cardIdx) => (
+                            <Card key={card.id} card={card} className="w-12 h-16 text-xs" />
+                          ))}
                         </div>
                       </div>
                     );
