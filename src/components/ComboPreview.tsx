@@ -8,10 +8,13 @@ interface ComboPreviewProps {
 }
 
 export function ComboPreview({ selectedCards, hasInitialMeld }: ComboPreviewProps) {
-  if (selectedCards.length === 0) return null;
+  // Filter out any undefined cards (can happen when indices become stale)
+  const validCards = selectedCards.filter(card => card !== undefined && card !== null);
+  
+  if (validCards.length === 0) return null;
 
-  const validation = validateMeld(selectedCards);
-  const points = selectedCards.reduce((sum, card) => sum + RANK_VALUES[card.rank], 0);
+  const validation = validateMeld(validCards);
+  const points = validCards.reduce((sum, card) => sum + RANK_VALUES[card.rank], 0);
 
   return (
     <div className="bg-card border-2 border-border rounded-lg p-4 space-y-2">
@@ -24,7 +27,7 @@ export function ComboPreview({ selectedCards, hasInitialMeld }: ComboPreviewProp
       
       <div className="text-sm">
         <div className="flex flex-wrap gap-1 mb-2">
-          {selectedCards.map(card => (
+          {validCards.map(card => (
             <span key={card.id} className="text-foreground font-medium">
               {card.rank}{card.suit}
             </span>
