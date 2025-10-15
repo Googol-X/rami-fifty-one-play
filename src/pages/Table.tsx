@@ -662,23 +662,6 @@ export default function Table() {
                 </div>
               )}
 
-              {/* Orphelines du bot */}
-              {bot.hand.length > 0 && (
-                <div className="bg-destructive/10 border-2 border-destructive/30 rounded-xl p-4">
-                  <h3 className="text-sm font-semibold text-destructive mb-2">
-                    🧮 Orphelines bot
-                  </h3>
-                  {(() => {
-                    const deadwood = computeDeadwood(bot.hand);
-                    return (
-                      <div className="text-xs text-muted-foreground">
-                        {deadwood.length} carte(s): {deadwood.map(c => `${c.rank}${c.suit}`).join(', ')}
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-              
               {/* Melds du joueur */}
               {player.laid.length > 0 && (
                 <div className="bg-secondary/30 rounded-xl p-4 border-2 border-border">
