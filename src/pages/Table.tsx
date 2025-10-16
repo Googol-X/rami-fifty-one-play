@@ -365,11 +365,6 @@ export default function Table() {
       title: "🎯 Validé", 
       description: message
     });
-
-    // Vérifier si le joueur a vidé sa main
-    if (player.hand.length === 0) {
-      setTimeout(() => checkRoundEnd({ ...player, hand: [] }, false), 300);
-    }
   };
 
   const handleDiscard = () => {
