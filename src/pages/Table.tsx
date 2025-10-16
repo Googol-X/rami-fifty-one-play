@@ -656,18 +656,67 @@ export default function Table() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-              <div className="w-full" role="region" aria-label="Main du Bot">
-                <h3 className="text-lg font-semibold text-foreground mb-3">
-                  Main du Bot ({bot.hand.length} cartes)
+              {/* Zone du Bot */}
+              <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 rounded-xl p-4 border-2 border-red-200 dark:border-red-800">
+                <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-4 flex items-center gap-2">
+                  🤖 Bot
+                  <span className="text-sm font-normal text-muted-foreground">({bot.hand.length} cartes en main)</span>
                 </h3>
-                <div className="flex gap-2 justify-center md:justify-start">
+                
+                {/* Dépôts du Bot */}
+                {bot.laid.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-2">Dépôts sur table :</h4>
+                    <div className="space-y-3">
+                      {bot.laid.map((combo, i) => {
+                        const validation = validateMeld(combo);
+                        return (
+                          <div key={i} className="bg-white/80 dark:bg-background/50 rounded-lg p-3 border border-red-200 dark:border-red-800">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-medium text-foreground">
+                                Combo {i + 1} • <span className="text-primary">{validation.type === 'set' ? '🎯 Série' : '📊 Suite'}</span> • {validation.points} pts
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  if (pendingMelds.length > 0) {
+                                    toast({
+                                      title: "Panier non vide",
+                                      description: "Validez ou videz votre panier avant d'ajouter des cartes",
+                                      variant: "destructive"
+                                    });
+                                    return;
+                                  }
+                                  setExtendingMeld({ owner: 'bot', index: i });
+                                }}
+                                disabled={!hasDrawn || extendingMeld !== null || roundOver}
+                                className="h-7 text-xs"
+                              >
+                                + Ajouter
+                              </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {combo.map((card) => (
+                                <Card key={card.id} card={card} className="w-14 h-20" />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Main cachée du Bot */}
+                <div className="flex gap-2 flex-wrap">
                   {bot.hand.map((_, index) => (
                     <div
                       key={index}
-                      className="w-16 h-24 rounded-lg border-2 border-border bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center"
+                      className="w-14 h-20 rounded-lg border-2 border-red-300 dark:border-red-700 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-800/40 flex items-center justify-center shadow-md"
                       aria-label={`Carte cachée ${index + 1}`}
                     >
-                      <span className="text-3xl text-muted-foreground">🂠</span>
+                      <span className="text-2xl">🂠</span>
                     </div>
                   ))}
                 </div>
@@ -680,14 +729,68 @@ export default function Table() {
                 onPickDiscard={handlePickDiscard}
               />
 
-              <div className="w-full">
-                <h3 className="text-lg font-semibold text-foreground mb-3">Votre main</h3>
-                <HandReorder
-                  hand={player.hand}
-                  selected={selectedCards}
-                  onToggle={handleCardClick}
-                  onReorder={(newHand) => setPlayer(prev => ({ ...prev, hand: newHand }))}
-                />
+              {/* Zone du Joueur */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800">
+                <h3 className="text-xl font-bold text-blue-700 dark:text-blue-400 mb-4 flex items-center gap-2">
+                  👤 Vous
+                  <span className="text-sm font-normal text-muted-foreground">({player.hand.length} cartes en main)</span>
+                </h3>
+                
+                {/* Dépôts du Joueur */}
+                {player.laid.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">Vos dépôts sur table :</h4>
+                    <div className="space-y-3">
+                      {player.laid.map((combo, i) => {
+                        const validation = validateMeld(combo);
+                        return (
+                          <div key={i} className="bg-white/80 dark:bg-background/50 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-medium text-foreground">
+                                Combo {i + 1} • <span className="text-primary">{validation.type === 'set' ? '🎯 Série' : '📊 Suite'}</span> • {validation.points} pts
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  if (pendingMelds.length > 0) {
+                                    toast({
+                                      title: "Panier non vide",
+                                      description: "Validez ou videz votre panier avant d'ajouter des cartes",
+                                      variant: "destructive"
+                                    });
+                                    return;
+                                  }
+                                  setExtendingMeld({ owner: 'player', index: i });
+                                }}
+                                disabled={!hasDrawn || extendingMeld !== null || roundOver}
+                                className="h-7 text-xs"
+                              >
+                                + Ajouter
+                              </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {combo.map((card) => (
+                                <Card key={card.id} card={card} className="w-14 h-20" />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Main du Joueur */}
+                <div>
+                  <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">Votre main :</h4>
+                  <HandReorder
+                    hand={player.hand}
+                    selected={selectedCards}
+                    onToggle={handleCardClick}
+                    onReorder={(newHand) => setPlayer(prev => ({ ...prev, hand: newHand }))}
+                  />
+                </div>
               </div>
 
               <ComboPreview 
@@ -774,92 +877,6 @@ export default function Table() {
                   <p className="text-xs text-muted-foreground">
                     Minimum <span className="font-bold text-foreground">51 points</span> + au moins <span className="font-bold text-foreground">une série</span> (3+ même rang)
                   </p>
-                </div>
-              )}
-
-              {/* Melds du joueur */}
-              {player.laid.length > 0 && (
-                <div className="bg-secondary/30 rounded-xl p-4 border-2 border-border">
-                  <h3 className="text-lg font-semibold mb-3">Vos combinaisons</h3>
-                  {player.laid.map((combo, i) => {
-                    const validation = validateMeld(combo);
-                    return (
-                      <div key={i} className="mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium">
-                            Combo {i + 1} ({validation.type === 'set' ? 'Série' : 'Suite'}) • {validation.points} pts
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              if (pendingMelds.length > 0) {
-                                toast({
-                                  title: "Panier non vide",
-                                  description: "Validez ou videz votre panier avant d'ajouter des cartes aux combinaisons déposées",
-                                  variant: "destructive"
-                                });
-                                return;
-                              }
-                              setExtendingMeld({ owner: 'player', index: i });
-                            }}
-                            disabled={!hasDrawn || extendingMeld !== null || roundOver}
-                            className="h-6 text-xs"
-                          >
-                            + Ajouter
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {combo.map((card, cardIdx) => (
-                            <Card key={card.id} card={card} className="w-12 h-16 text-xs" />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Melds du bot */}
-              {bot.laid.length > 0 && (
-                <div className="bg-secondary/30 rounded-xl p-4 border-2 border-border">
-                  <h3 className="text-lg font-semibold mb-3">Combinaisons du bot</h3>
-                  {bot.laid.map((combo, i) => {
-                    const validation = validateMeld(combo);
-                    return (
-                      <div key={i} className="mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium">
-                            Combo {i + 1} ({validation.type === 'set' ? 'Série' : 'Suite'}) • {validation.points} pts
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              if (pendingMelds.length > 0) {
-                                toast({
-                                  title: "Panier non vide",
-                                  description: "Validez ou videz votre panier avant d'ajouter des cartes aux combinaisons déposées",
-                                  variant: "destructive"
-                                });
-                                return;
-                              }
-                              setExtendingMeld({ owner: 'bot', index: i });
-                            }}
-                            disabled={!hasDrawn || extendingMeld !== null || roundOver}
-                            className="h-6 text-xs"
-                          >
-                            + Ajouter
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {combo.map((card, cardIdx) => (
-                            <Card key={card.id} card={card} className="w-12 h-16 text-xs" />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               )}
 
