@@ -301,43 +301,45 @@ export function canExtendMeld(meld: Card[], card: Card): boolean {
     const sameSuit = meld.every(c => c.suit === card.suit);
     if (!sameSuit || card.suit !== meld[0].suit) return false;
     
+    // Trier pour analyse
     const sorted = [...meld].sort((a, b) => getRankIndex(a.rank) - getRankIndex(b.rank));
+    const ranks = sorted.map(c => c.rank);
+    
+    // Détecter si c'est une suite Q-K-A (cas spécial)
+    const hasQueen = ranks.includes('Q');
+    const hasKing = ranks.includes('K');
+    const hasAce = ranks.includes('A');
+    
+    // Suite Q-K-A complète
+    if (hasQueen && hasKing && hasAce && sorted.length === 3) {
+      // Peut être étendue par J avant le Q
+      return card.rank === 'J';
+    }
+    
+    // Suite Q-K (peut ajouter A ou J)
+    if (hasQueen && hasKing && sorted.length === 2) {
+      return card.rank === 'J' || card.rank === 'A';
+    }
+    
+    // Suite K-A (peut ajouter Q ou J)
+    if (hasKing && hasAce && sorted.length === 2) {
+      return card.rank === 'Q' || card.rank === 'J';
+    }
+    
+    // Suite normale : vérifier extension par extrémités
     const firstRank = sorted[0].rank;
     const lastRank = sorted[sorted.length - 1].rank;
     const cardIndex = getRankIndex(card.rank);
     const firstIndex = getRankIndex(firstRank);
     const lastIndex = getRankIndex(lastRank);
     
-    // Cas spécial Q-K-A
-    const hasQueen = sorted.some(c => c.rank === 'Q');
-    const hasKing = sorted.some(c => c.rank === 'K');
-    const hasAce = sorted.some(c => c.rank === 'A');
-    
-    if (hasQueen && hasKing && hasAce) {
-      // Q-K-A complet, ne peut pas être étendu
-      return false;
+    // Cas A-2-3... : prolonger après le dernier ou avant (impossible avant A)
+    if (firstRank === 'A') {
+      // On ne peut pas ajouter avant A (sauf si c'est Q-K-A traité au-dessus)
+      return cardIndex === lastIndex + 1;
     }
     
-    if (hasQueen && hasKing && card.rank === 'A') {
-      // Q-K + A → Q-K-A
-      return true;
-    }
-    
-    if (hasKing && hasAce && card.rank === 'Q') {
-      // K-A + Q → Q-K-A (mais suite inversée, à vérifier)
-      return false; // On autorise seulement dans l'ordre
-    }
-    
-    // Cas A-2-3 : As en position basse
-    if (firstRank === 'A' && lastRank === '3' && card.rank === '4') {
-      return true;
-    }
-    
-    if (firstRank === 'A' && lastRank === '2' && card.rank === '3') {
-      return true;
-    }
-    
-    // Prolongation normale : carte juste avant ou juste après
+    // Cas normal : prolonger avant le premier ou après le dernier
     return cardIndex === firstIndex - 1 || cardIndex === lastIndex + 1;
   }
   

@@ -665,20 +665,20 @@ export default function Table() {
                 
                 {/* Dépôts du Bot */}
                 {bot.laid.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-2">Dépôts sur table :</h4>
-                    <div className="space-y-3">
+                  <div className="mb-3">
+                    <h4 className="text-xs font-semibold text-red-600 dark:text-red-400 mb-2">Dépôts :</h4>
+                    <div className="flex gap-2 overflow-x-auto pb-2">
                       {bot.laid.map((combo, i) => {
                         const validation = validateMeld(combo);
                         return (
-                          <div key={i} className="bg-white/80 dark:bg-background/50 rounded-lg p-3 border border-red-200 dark:border-red-800">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-medium text-foreground">
-                                Combo {i + 1} • <span className="text-primary">{validation.type === 'set' ? '🎯 Série' : '📊 Suite'}</span> • {validation.points} pts
+                          <div key={i} className="bg-white/60 dark:bg-background/40 rounded-lg p-2 border border-red-200 dark:border-red-700 flex-shrink-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+                                {validation.type === 'set' ? '🎯' : '📊'} {validation.points}pts
                               </span>
                               <Button
                                 size="sm"
-                                variant="outline"
+                                variant="ghost"
                                 onClick={() => {
                                   if (pendingMelds.length > 0) {
                                     toast({
@@ -691,14 +691,14 @@ export default function Table() {
                                   setExtendingMeld({ owner: 'bot', index: i });
                                 }}
                                 disabled={!hasDrawn || extendingMeld !== null || roundOver}
-                                className="h-7 text-xs"
+                                className="h-5 px-2 text-[10px]"
                               >
-                                + Ajouter
+                                +
                               </Button>
                             </div>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex gap-1">
                               {combo.map((card) => (
-                                <Card key={card.id} card={card} className="w-14 h-20" />
+                                <Card key={card.id} card={card} className="w-10 h-14" />
                               ))}
                             </div>
                           </div>
@@ -738,20 +738,20 @@ export default function Table() {
                 
                 {/* Dépôts du Joueur */}
                 {player.laid.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">Vos dépôts sur table :</h4>
-                    <div className="space-y-3">
+                  <div className="mb-3">
+                    <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2">Vos dépôts :</h4>
+                    <div className="flex gap-2 overflow-x-auto pb-2">
                       {player.laid.map((combo, i) => {
                         const validation = validateMeld(combo);
                         return (
-                          <div key={i} className="bg-white/80 dark:bg-background/50 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-medium text-foreground">
-                                Combo {i + 1} • <span className="text-primary">{validation.type === 'set' ? '🎯 Série' : '📊 Suite'}</span> • {validation.points} pts
+                          <div key={i} className="bg-white/60 dark:bg-background/40 rounded-lg p-2 border border-blue-200 dark:border-blue-700 flex-shrink-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+                                {validation.type === 'set' ? '🎯' : '📊'} {validation.points}pts
                               </span>
                               <Button
                                 size="sm"
-                                variant="outline"
+                                variant="ghost"
                                 onClick={() => {
                                   if (pendingMelds.length > 0) {
                                     toast({
@@ -764,14 +764,14 @@ export default function Table() {
                                   setExtendingMeld({ owner: 'player', index: i });
                                 }}
                                 disabled={!hasDrawn || extendingMeld !== null || roundOver}
-                                className="h-7 text-xs"
+                                className="h-5 px-2 text-[10px]"
                               >
-                                + Ajouter
+                                +
                               </Button>
                             </div>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex gap-1">
                               {combo.map((card) => (
-                                <Card key={card.id} card={card} className="w-14 h-20" />
+                                <Card key={card.id} card={card} className="w-10 h-14" />
                               ))}
                             </div>
                           </div>
