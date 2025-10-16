@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +21,8 @@ const Lobby = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteGameId = searchParams.get('invite');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,6 +49,11 @@ const Lobby = () => {
     if (user) {
       loadGames();
       
+      // Si un lien d'invitation est présent, rejoindre automatiquement
+      if (inviteGameId) {
+        joinGame(inviteGameId);
+      }
+      
       const channel = supabase
         .channel('games-changes')
         .on(
@@ -64,7 +71,7 @@ const Lobby = () => {
         supabase.removeChannel(channel);
       };
     }
-  }, [user]);
+  }, [user, inviteGameId]);
 
   const loadGames = async () => {
     const { data, error } = await supabase

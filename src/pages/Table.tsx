@@ -661,9 +661,28 @@ export default function Table() {
           {/* Mode multijoueur - Liste des joueurs */}
           {isMultiplayer && (
             <div className="mb-6 bg-accent/10 border-2 border-accent/30 rounded-xl p-4">
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                👥 Joueurs connectés ({players.length}/4)
-              </h3>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  👥 Joueurs connectés ({players.length}/4)
+                </h3>
+                {!gameState && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const inviteLink = `${window.location.origin}/lobby?invite=${gameId}`;
+                      navigator.clipboard.writeText(inviteLink);
+                      toast({
+                        title: "✓ Lien copié !",
+                        description: "Partagez ce lien pour inviter vos amis"
+                      });
+                    }}
+                  >
+                    📋 Copier le lien d'invitation
+                  </Button>
+                )}
+              </div>
+              
               <div className="grid grid-cols-2 gap-2 mb-3">
                 {players.map((p: any) => (
                   <div key={p.player_id} className="flex items-center gap-2 bg-background/50 rounded-lg p-2">
@@ -674,9 +693,23 @@ export default function Table() {
                   </div>
                 ))}
               </div>
-              {isHost && players.length < 2 && (
-                <p className="text-xs text-muted-foreground">
-                  En attente d'autres joueurs... (minimum 2 joueurs requis)
+              
+              {!gameState && (
+                <div className="bg-primary/5 rounded-lg p-3 mb-3">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    💡 <strong>Pour inviter des joueurs:</strong>
+                  </p>
+                  <ol className="text-xs text-muted-foreground space-y-1 ml-4 list-decimal">
+                    <li>Cliquez sur "Copier le lien d'invitation"</li>
+                    <li>Partagez le lien avec vos amis par message, email, etc.</li>
+                    <li>Ils pourront rejoindre depuis le lobby</li>
+                  </ol>
+                </div>
+              )}
+              
+              {isHost && players.length < 2 && !gameState && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  ⏳ En attente d'autres joueurs... (minimum 2 joueurs requis)
                 </p>
               )}
               {isHost && players.length >= 2 && !gameState && (
@@ -703,7 +736,7 @@ export default function Table() {
                     last_action: 'Partie démarrée',
                   });
                 }} className="w-full">
-                  Démarrer la partie
+                  🎮 Démarrer la partie ({players.length} joueurs)
                 </Button>
               )}
             </div>
