@@ -14,7 +14,151 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      game_players: {
+        Row: {
+          game_id: string
+          id: string
+          is_ready: boolean | null
+          joined_at: string
+          player_id: string
+          player_index: number
+        }
+        Insert: {
+          game_id: string
+          id?: string
+          is_ready?: boolean | null
+          joined_at?: string
+          player_id: string
+          player_index: number
+        }
+        Update: {
+          game_id?: string
+          id?: string
+          is_ready?: boolean | null
+          joined_at?: string
+          player_id?: string
+          player_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_players_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_players_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_state: {
+        Row: {
+          current_turn: number | null
+          deck: Json
+          discard_pile: Json
+          game_id: string
+          id: string
+          last_action: string | null
+          phase: string | null
+          player_hands: Json
+          player_melds: Json
+          updated_at: string
+        }
+        Insert: {
+          current_turn?: number | null
+          deck?: Json
+          discard_pile?: Json
+          game_id: string
+          id?: string
+          last_action?: string | null
+          phase?: string | null
+          player_hands?: Json
+          player_melds?: Json
+          updated_at?: string
+        }
+        Update: {
+          current_turn?: number | null
+          deck?: Json
+          discard_pile?: Json
+          game_id?: string
+          id?: string
+          last_action?: string | null
+          phase?: string | null
+          player_hands?: Json
+          player_melds?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_state_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: true
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          created_at: string
+          current_player_index: number | null
+          finished_at: string | null
+          host_id: string
+          id: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          current_player_index?: number | null
+          finished_at?: string | null
+          host_id: string
+          id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          current_player_index?: number | null
+          finished_at?: string | null
+          host_id?: string
+          id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "games_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
