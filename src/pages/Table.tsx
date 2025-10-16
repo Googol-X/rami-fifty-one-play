@@ -868,17 +868,6 @@ export default function Table() {
 
             <div className="space-y-6">
               <GameScore playerScore={player.score} botScore={bot.score} />
-              
-              {!playerHasInitialMeld && (
-                <div className="bg-orange-500/10 border-2 border-orange-500/30 rounded-xl p-4">
-                  <h3 className="text-sm font-semibold text-orange-600 dark:text-orange-400 mb-1">
-                    🎯 Dépôt initial requis
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Minimum <span className="font-bold text-foreground">51 points</span> + au moins <span className="font-bold text-foreground">une série</span> (3+ même rang)
-                  </p>
-                </div>
-              )}
 
               {/* Message mode extension */}
               {extendingMeld && (
@@ -901,6 +890,44 @@ export default function Table() {
                   </p>
                 </div>
               )}
+
+              {/* Statistiques de la manche */}
+              <div className="bg-card/50 border-2 border-border rounded-xl p-4">
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  📊 Statistiques
+                </h3>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Pioche restante</span>
+                    <span className="font-bold text-foreground">{drawPile.length} cartes</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Défausse</span>
+                    <span className="font-bold text-foreground">{discardPile.length} cartes</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Vos dépôts</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">{player.laid.length} combos</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Dépôts du bot</span>
+                    <span className="font-bold text-red-600 dark:text-red-400">{bot.laid.length} combos</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Aide rapide */}
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-4">
+                <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-400 mb-2 flex items-center gap-2">
+                  💡 Aide rapide
+                </h3>
+                <div className="space-y-1.5 text-xs text-purple-900 dark:text-purple-300">
+                  <p>• <span className="font-semibold">Cliquez</span> sur les cartes pour les sélectionner</p>
+                  <p>• <span className="font-semibold">Glissez</span> pour réorganiser votre main</p>
+                  <p>• <span className="font-semibold">+ Ajouter</span> pour étendre une combo existante</p>
+                  <p>• Utilisez le <span className="font-semibold">🧺 Panier</span> pour préparer vos dépôts</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
