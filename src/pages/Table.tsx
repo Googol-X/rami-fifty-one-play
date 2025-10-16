@@ -677,8 +677,18 @@ export default function Table() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setExtendingMeld({ owner: 'player', index: i })}
-                            disabled={!hasDrawn || extendingMeld !== null}
+                            onClick={() => {
+                              if (pendingMelds.length > 0) {
+                                toast({
+                                  title: "Panier non vide",
+                                  description: "Validez ou videz votre panier avant d'ajouter des cartes aux combinaisons déposées",
+                                  variant: "destructive"
+                                });
+                                return;
+                              }
+                              setExtendingMeld({ owner: 'player', index: i });
+                            }}
+                            disabled={!hasDrawn || extendingMeld !== null || roundOver}
                             className="h-6 text-xs"
                           >
                             + Ajouter
@@ -710,8 +720,18 @@ export default function Table() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setExtendingMeld({ owner: 'bot', index: i })}
-                            disabled={!hasDrawn || extendingMeld !== null}
+                            onClick={() => {
+                              if (pendingMelds.length > 0) {
+                                toast({
+                                  title: "Panier non vide",
+                                  description: "Validez ou videz votre panier avant d'ajouter des cartes aux combinaisons déposées",
+                                  variant: "destructive"
+                                });
+                                return;
+                              }
+                              setExtendingMeld({ owner: 'bot', index: i });
+                            }}
+                            disabled={!hasDrawn || extendingMeld !== null || roundOver}
                             className="h-6 text-xs"
                           >
                             + Ajouter
