@@ -11,7 +11,7 @@ import {
   pickFromDiscard,
   peekDiscard 
 } from '@/utils/deck';
-import { validateMeld, canExtendMeld, hasSetInMelds, computeDeadwood } from '@/utils/validation';
+import { validateMeld, canExtendMeld, hasSetInMelds, computeDeadwood, sortMeld } from '@/utils/validation';
 import { findValidCombos, evaluateCardUtility } from '@/utils/botAI';
 import { GameHand } from '@/components/GameHand';
 import { HandReorder } from '@/components/HandReorder';
@@ -205,21 +205,47 @@ export default function Table() {
       return;
     }
 
-    // Ajouter la carte à la meld
+    // Ajouter la carte à la meld et la trier correctement
     const newHand = player.hand.filter((_, i) => i !== cardIndex);
     
     if (owner === 'player') {
       const newLaid = [...player.laid];
-      newLaid[meldIndex] = [...newLaid[meldIndex], card];
+      const updatedMeld = [...newLaid[meldIndex], card];
+      
+      // Calculer la valeur de la carte ajoutée dans le contexte du meld
+      const oldValidation = validateMeld(newLaid[meldIndex]);
+      const oldPoints = oldValidation.points || 0;
+      
+      // Trier le meld si c'est une suite
+      const validation = validateMeld(updatedMeld);
+      if (validation.valid && validation.type === 'run') {
+        newLaid[meldIndex] = sortMeld(updatedMeld);
+      } else {
+        newLaid[meldIndex] = updatedMeld;
+      }
+      
+      const newValidation = validateMeld(newLaid[meldIndex]);
+      const newPoints = newValidation.points || 0;
+      const pointsAdded = newPoints - oldPoints;
+      
       setPlayer(prev => ({
         ...prev,
         hand: newHand,
         laid: newLaid,
-        score: prev.score + RANK_VALUES[card.rank]
+        score: prev.score + pointsAdded
       }));
     } else {
       const newLaid = [...bot.laid];
-      newLaid[meldIndex] = [...newLaid[meldIndex], card];
+      const updatedMeld = [...newLaid[meldIndex], card];
+      
+      // Trier le meld si c'est une suite
+      const validation = validateMeld(updatedMeld);
+      if (validation.valid && validation.type === 'run') {
+        newLaid[meldIndex] = sortMeld(updatedMeld);
+      } else {
+        newLaid[meldIndex] = updatedMeld;
+      }
+      
       setBot(prev => ({
         ...prev,
         laid: newLaid

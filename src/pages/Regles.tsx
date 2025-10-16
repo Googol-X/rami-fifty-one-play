@@ -117,15 +117,22 @@ export default function Regles() {
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-foreground mb-3 flex items-center gap-2">
                   <span>💰</span> Valeurs des cartes
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                <div className="space-y-3 mb-3">
                   <div className="bg-white dark:bg-background/80 border border-gray-200 dark:border-foreground/10 p-3 rounded-lg">
-                    <p className="font-bold text-gray-900 dark:text-foreground">As : <span className="bg-yellow-200 dark:bg-primary/20 px-1.5 py-0.5 rounded">11 pts</span></p>
+                    <p className="font-bold text-gray-900 dark:text-foreground mb-2">As (valeur variable) :</p>
+                    <ul className="text-sm text-gray-700 dark:text-foreground/70 space-y-1 ml-4">
+                      <li>• <span className="bg-yellow-200 dark:bg-primary/20 px-1.5 py-0.5 rounded">11 pts</span> dans une tierce (série) : A♠ A♥ A♦</li>
+                      <li>• <span className="bg-yellow-200 dark:bg-primary/20 px-1.5 py-0.5 rounded">10 pts</span> dans une suite se terminant par A : 10-J-Q-K-A</li>
+                      <li>• <span className="bg-yellow-200 dark:bg-primary/20 px-1.5 py-0.5 rounded">1 pt</span> dans une suite commençant par A : A-2-3-4</li>
+                    </ul>
                   </div>
-                  <div className="bg-white dark:bg-background/80 border border-gray-200 dark:border-foreground/10 p-3 rounded-lg">
-                    <p className="font-bold text-gray-900 dark:text-foreground">Figures (J, Q, K) : <span className="bg-yellow-200 dark:bg-primary/20 px-1.5 py-0.5 rounded">10 pts</span></p>
-                  </div>
-                  <div className="bg-white dark:bg-background/80 border border-gray-200 dark:border-foreground/10 p-3 rounded-lg">
-                    <p className="font-bold text-gray-900 dark:text-foreground">2 à 10 : <span className="bg-yellow-200 dark:bg-primary/20 px-1.5 py-0.5 rounded">valeur nominale</span></p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="bg-white dark:bg-background/80 border border-gray-200 dark:border-foreground/10 p-3 rounded-lg">
+                      <p className="font-bold text-gray-900 dark:text-foreground">Figures (J, Q, K) : <span className="bg-yellow-200 dark:bg-primary/20 px-1.5 py-0.5 rounded">10 pts</span></p>
+                    </div>
+                    <div className="bg-white dark:bg-background/80 border border-gray-200 dark:border-foreground/10 p-3 rounded-lg">
+                      <p className="font-bold text-gray-900 dark:text-foreground">2 à 10 : <span className="bg-yellow-200 dark:bg-primary/20 px-1.5 py-0.5 rounded">valeur nominale</span></p>
+                    </div>
                   </div>
                 </div>
                 <div className="mt-3 p-3 bg-green-100 dark:bg-foreground/10 border border-green-300 dark:border-foreground/20 rounded-lg">

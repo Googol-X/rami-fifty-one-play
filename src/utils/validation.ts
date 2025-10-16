@@ -75,9 +75,56 @@ function isValidRun(cards: Card[]): boolean {
 }
 
 /**
- * Calcule les points d'une combinaison valide
+ * Trie les cartes d'un meld selon leur rang (pour les suites)
+ */
+export function sortMeld(cards: Card[]): Card[] {
+  return [...cards].sort((a, b) => getRankIndex(a.rank) - getRankIndex(b.rank));
+}
+
+/**
+ * Calcule les points d'une combinaison valide avec règles spéciales pour l'As
+ * - As = 11 points dans une tierce (set)
+ * - As = 10 points dans une suite se terminant par A (ex: 10-J-Q-K-A)
+ * - As = 1 point dans une suite commençant par A (ex: A-2-3-4)
  */
 function calculatePoints(cards: Card[]): number {
+  if (cards.length === 0) return 0;
+  
+  // Déterminer le type de combinaison
+  const allSameRank = cards.every(c => c.rank === cards[0].rank);
+  const allSameSuit = cards.every(c => c.suit === cards[0].suit);
+  
+  // Tierce (set) : As = 11 points
+  if (allSameRank) {
+    return cards.reduce((sum, card) => sum + RANK_VALUES[card.rank], 0);
+  }
+  
+  // Suite (run) : vérifier la position de l'As
+  if (allSameSuit) {
+    const sorted = sortMeld(cards);
+    const ranks = sorted.map(c => c.rank);
+    
+    // Suite commençant par A (A-2-3-4...) : As = 1 point
+    if (ranks[0] === 'A' && ranks[1] === '2') {
+      let points = 1; // As = 1 point
+      for (let i = 1; i < cards.length; i++) {
+        points += RANK_VALUES[sorted[i].rank];
+      }
+      return points;
+    }
+    
+    // Suite se terminant par A (...Q-K-A ou ...10-J-Q-K-A) : As = 10 points
+    if (ranks[ranks.length - 1] === 'A' && ranks[ranks.length - 2] === 'K') {
+      let points = 0;
+      for (let i = 0; i < cards.length - 1; i++) {
+        points += RANK_VALUES[sorted[i].rank];
+      }
+      points += 10; // As = 10 points
+      return points;
+    }
+  }
+  
+  // Cas par défaut : valeurs normales
   return cards.reduce((sum, card) => sum + RANK_VALUES[card.rank], 0);
 }
 
