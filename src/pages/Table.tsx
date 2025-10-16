@@ -666,13 +666,13 @@ export default function Table() {
                 {/* Dépôts du Bot */}
                 {bot.laid.length > 0 && (
                   <div className="mb-3">
-                    <h4 className="text-xs font-semibold text-red-600 dark:text-red-400 mb-2">Dépôts :</h4>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
+                    <h4 className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1.5">Dépôts :</h4>
+                    <div className="flex gap-1.5 overflow-x-auto pb-1.5">
                       {bot.laid.map((combo, i) => {
                         const validation = validateMeld(combo);
                         return (
-                          <div key={i} className="bg-white/60 dark:bg-background/40 rounded-lg p-2 border border-red-200 dark:border-red-700 flex-shrink-0">
-                            <div className="flex items-center gap-2 mb-1">
+                          <div key={i} className="bg-white/60 dark:bg-background/40 rounded-lg p-1.5 border border-red-200 dark:border-red-700 flex-shrink-0">
+                            <div className="flex items-center gap-1.5 mb-1">
                               <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
                                 {validation.type === 'set' ? '🎯' : '📊'} {validation.points}pts
                               </span>
@@ -696,9 +696,9 @@ export default function Table() {
                                 +
                               </Button>
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex gap-0.5">
                               {combo.map((card) => (
-                                <Card key={card.id} card={card} className="w-10 h-14" />
+                                <Card key={card.id} card={card} className="w-8 h-12" />
                               ))}
                             </div>
                           </div>
@@ -739,13 +739,13 @@ export default function Table() {
                 {/* Dépôts du Joueur */}
                 {player.laid.length > 0 && (
                   <div className="mb-3">
-                    <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2">Vos dépôts :</h4>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
+                    <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1.5">Vos dépôts :</h4>
+                    <div className="flex gap-1.5 overflow-x-auto pb-1.5">
                       {player.laid.map((combo, i) => {
                         const validation = validateMeld(combo);
                         return (
-                          <div key={i} className="bg-white/60 dark:bg-background/40 rounded-lg p-2 border border-blue-200 dark:border-blue-700 flex-shrink-0">
-                            <div className="flex items-center gap-2 mb-1">
+                          <div key={i} className="bg-white/60 dark:bg-background/40 rounded-lg p-1.5 border border-blue-200 dark:border-blue-700 flex-shrink-0">
+                            <div className="flex items-center gap-1.5 mb-1">
                               <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
                                 {validation.type === 'set' ? '🎯' : '📊'} {validation.points}pts
                               </span>
@@ -769,9 +769,9 @@ export default function Table() {
                                 +
                               </Button>
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex gap-0.5">
                               {combo.map((card) => (
-                                <Card key={card.id} card={card} className="w-10 h-14" />
+                                <Card key={card.id} card={card} className="w-8 h-12" />
                               ))}
                             </div>
                           </div>
@@ -891,43 +891,6 @@ export default function Table() {
                 </div>
               )}
 
-              {/* Statistiques de la manche */}
-              <div className="bg-card/50 border-2 border-border rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  📊 Statistiques
-                </h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Pioche restante</span>
-                    <span className="font-bold text-foreground">{drawPile.length} cartes</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Défausse</span>
-                    <span className="font-bold text-foreground">{discardPile.length} cartes</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Vos dépôts</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">{player.laid.length} combos</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Dépôts du bot</span>
-                    <span className="font-bold text-red-600 dark:text-red-400">{bot.laid.length} combos</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Aide rapide */}
-              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border-2 border-purple-200 dark:border-purple-800 rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-400 mb-2 flex items-center gap-2">
-                  💡 Aide rapide
-                </h3>
-                <div className="space-y-1.5 text-xs text-purple-900 dark:text-purple-300">
-                  <p>• <span className="font-semibold">Cliquez</span> sur les cartes pour les sélectionner</p>
-                  <p>• <span className="font-semibold">Glissez</span> pour réorganiser votre main</p>
-                  <p>• <span className="font-semibold">+ Ajouter</span> pour étendre une combo existante</p>
-                  <p>• Utilisez le <span className="font-semibold">🧺 Panier</span> pour préparer vos dépôts</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
