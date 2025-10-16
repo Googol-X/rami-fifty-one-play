@@ -22,7 +22,15 @@ export default function Home() {
             onClick={() => navigate('/table')}
             className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-xl"
           >
-            Nouvelle Partie
+            Jouer Hors Ligne
+          </Button>
+
+          <Button 
+            size="lg"
+            onClick={() => navigate('/auth')}
+            className="text-lg px-8 py-6 bg-accent hover:bg-accent/90 text-accent-foreground font-bold shadow-xl"
+          >
+            Jouer en Ligne
           </Button>
           
           <Button 
@@ -45,8 +53,8 @@ export default function Home() {
             <p className="text-sm text-muted-foreground">51 points</p>
           </div>
           <div className="p-4">
-            <div className="text-4xl mb-2">🤖</div>
-            <p className="text-sm text-muted-foreground">vs Bot</p>
+            <div className="text-4xl mb-2">👥</div>
+            <p className="text-sm text-muted-foreground">Multijoueur</p>
           </div>
           </div>
         </div>

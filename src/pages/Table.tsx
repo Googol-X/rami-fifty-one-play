@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card as CardType, Player, RANK_VALUES } from '@/types/game';
 import { 
@@ -25,11 +25,15 @@ import { Layout } from '@/components/Layout';
 import { Card } from '@/components/Card';
 import { useToast } from '@/hooks/use-toast';
 import { useGameScore } from '@/hooks/useGameScore';
+import { useMultiplayer } from '@/hooks/useMultiplayer';
 
 export default function Table() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const gameId = searchParams.get('gameId');
   const { toast } = useToast();
   const { gameScore, addRound, resetGame, isGameOver: isFullGameOver, winner: gameWinner } = useGameScore();
+  const { gameState, players, currentPlayerIndex, isHost, isMultiplayer, updateGameState, initializeGame } = useMultiplayer(gameId);
   
   const [drawPile, setDrawPile] = useState<CardType[]>([]);
   const [discardPile, setDiscardPile] = useState<CardType[]>([]);
@@ -653,6 +657,57 @@ export default function Table() {
               Nouvelle manche
             </Button>
           </div>
+
+          {/* Mode multijoueur - Liste des joueurs */}
+          {isMultiplayer && (
+            <div className="mb-6 bg-accent/10 border-2 border-accent/30 rounded-xl p-4">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                👥 Joueurs connectés ({players.length}/4)
+              </h3>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                {players.map((p: any) => (
+                  <div key={p.player_id} className="flex items-center gap-2 bg-background/50 rounded-lg p-2">
+                    <span className="text-sm font-medium">{p.profiles.username}</span>
+                    {p.player_index === currentPlayerIndex && (
+                      <span className="text-xs text-primary">(Vous)</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {isHost && players.length < 2 && (
+                <p className="text-xs text-muted-foreground">
+                  En attente d'autres joueurs... (minimum 2 joueurs requis)
+                </p>
+              )}
+              {isHost && players.length >= 2 && !gameState && (
+                <Button onClick={() => {
+                  const shuffled = shuffleDeck(createDeck(), Date.now());
+                  const hands: { [key: number]: CardType[] } = {};
+                  let remaining = shuffled;
+                  
+                  players.forEach((p: any) => {
+                    const [hand, afterDeal] = deal(remaining, 10);
+                    hands[p.player_index] = hand;
+                    remaining = afterDeal;
+                  });
+                  
+                  const [firstDiscard, deck] = draw(remaining);
+                  
+                  initializeGame({
+                    deck,
+                    discard_pile: firstDiscard ? [firstDiscard] : [],
+                    player_hands: hands,
+                    player_melds: {},
+                    current_turn: 0,
+                    phase: 'draw',
+                    last_action: 'Partie démarrée',
+                  });
+                }} className="w-full">
+                  Démarrer la partie
+                </Button>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
