@@ -387,16 +387,32 @@ export default function Table() {
       return;
     }
 
-    if (selectedCards.length !== 1) {
+    // Si le joueur n'a qu'une seule carte et qu'elle n'est pas sélectionnée, l'auto-sélectionner
+    let cardIndex: number;
+    if (player.hand.length === 1 && selectedCards.length === 0) {
+      cardIndex = 0;
+    } else if (selectedCards.length !== 1) {
       toast({ 
         title: "Sélection invalide", 
         description: "Sélectionnez exactement 1 carte à défausser", 
         variant: "destructive" 
       });
       return;
+    } else {
+      cardIndex = selectedCards[0];
     }
-
-    const discardedCard = player.hand[selectedCards[0]];
+    
+    const discardedCard = player.hand[cardIndex];
+    
+    if (!discardedCard) {
+      toast({ 
+        title: "Erreur", 
+        description: "Carte invalide. Veuillez sélectionner une carte de votre main.", 
+        variant: "destructive" 
+      });
+      setSelectedCards([]);
+      return;
+    }
     const newDiscardPile = addToDiscard(discardPile, discardedCard);
     const newHand = player.hand.filter((_, i) => i !== selectedCards[0]);
     
@@ -636,7 +652,7 @@ export default function Table() {
 
               <GameControls
                 hasDrawn={hasDrawn}
-                selectedCount={selectedCards.length}
+                selectedCount={player.hand.length === 1 && selectedCards.length === 0 ? 1 : selectedCards.length}
                 onLayCombo={addSelectedMeld}
                 onDiscard={handleDiscard}
                 disabled={roundOver}
