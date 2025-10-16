@@ -53,6 +53,7 @@ export default function Table() {
   const [roundWinner, setRoundWinner] = useState<'player' | 'bot' | null>(null);
   const [playerHasInitialMeld, setPlayerHasInitialMeld] = useState(false);
   const [botHasInitialMeld, setBotHasInitialMeld] = useState(false);
+  const [firstDepositScore, setFirstDepositScore] = useState<number>(0); // Score du premier dépôt
   const [liveMessage, setLiveMessage] = useState<string>('');
   const [pendingMelds, setPendingMelds] = useState<CardType[][]>([]);
   const [extendingMeld, setExtendingMeld] = useState<{ owner: 'player' | 'bot', index: number } | null>(null);
@@ -84,6 +85,7 @@ export default function Table() {
     setRoundWinner(null);
     setPlayerHasInitialMeld(false);
     setBotHasInitialMeld(false);
+    setFirstDepositScore(0);
     setPendingMelds([]);
     setExtendingMeld(null);
     
@@ -366,6 +368,16 @@ export default function Table() {
         });
         return;
       }
+
+      // Si l'adversaire a déjà déposé, on doit dépasser son score
+      if (botHasInitialMeld && totalPoints <= firstDepositScore) {
+        toast({ 
+          title: "❌ Score insuffisant",
+          description: `Vous devez dépasser le score du bot (${firstDepositScore} points). Vous avez ${totalPoints} points.`,
+          variant: "destructive" 
+        });
+        return;
+      }
     }
 
     // Valider: déplacer dans yourMelds et mettre à jour le score
@@ -489,12 +501,60 @@ export default function Table() {
       }
       
       setTimeout(() => {
-        const newHand = [...bot.hand, drawnCard];
+        let newHand = [...bot.hand, drawnCard];
         
-        // Tenter de déposer des combinaisons
+        // 1. Essayer d'ajouter des cartes aux dépôts existants
+        const allMelds = [...player.laid, ...bot.laid];
+        let cardsAdded = 0;
+        
+        for (const card of [...newHand]) {
+          for (let i = 0; i < allMelds.length; i++) {
+            if (canExtendMeld(allMelds[i], card)) {
+              // Ajouter la carte au dépôt
+              newHand = newHand.filter(c => c.id !== card.id);
+              
+              if (i < player.laid.length) {
+                // Ajouter au dépôt du joueur
+                setPlayer(prev => {
+                  const newLaid = [...prev.laid];
+                  const updatedMeld = [...newLaid[i], card];
+                  const validation = validateMeld(updatedMeld);
+                  if (validation.valid && validation.type === 'run') {
+                    newLaid[i] = sortMeld(updatedMeld);
+                  } else {
+                    newLaid[i] = updatedMeld;
+                  }
+                  return { ...prev, laid: newLaid };
+                });
+              } else {
+                // Ajouter à son propre dépôt
+                setBot(prev => {
+                  const newLaid = [...prev.laid];
+                  const botMeldIndex = i - player.laid.length;
+                  const updatedMeld = [...newLaid[botMeldIndex], card];
+                  const validation = validateMeld(updatedMeld);
+                  if (validation.valid && validation.type === 'run') {
+                    newLaid[botMeldIndex] = sortMeld(updatedMeld);
+                  } else {
+                    newLaid[botMeldIndex] = updatedMeld;
+                  }
+                  return { ...prev, laid: newLaid };
+                });
+              }
+              cardsAdded++;
+              break; // Une carte ajoutée, passer à la suivante
+            }
+          }
+        }
+        
+        // Mettre à jour la main du bot après les ajouts
+        setBot(prev => ({ ...prev, hand: newHand }));
+        
+        // 2. Tenter de déposer des combinaisons
         const combos = findValidCombos(newHand);
         let handAfterLay = [...newHand];
         let totalPoints = 0;
+        let depositedCombos: CardType[][] = [];
         
         for (const combo of combos) {
           const validation = validateMeld(combo);
@@ -502,21 +562,39 @@ export default function Table() {
           
           const points = validation.points || 0;
           
-          // Vérifier seuil 51 pour dépôt initial
-          if (!botHasInitialMeld && points < 51) continue;
+          // Vérifier pour dépôt initial
+          if (!botHasInitialMeld) {
+            // Doit avoir >= 51 points
+            if (points < 51) continue;
+            
+            // Doit avoir au moins une série
+            if (!hasSetInMelds([combo])) continue;
+            
+            // Si le joueur a déjà déposé, doit dépasser son score
+            if (playerHasInitialMeld && points <= firstDepositScore) continue;
+          }
           
           totalPoints += points;
           handAfterLay = handAfterLay.filter(c => !combo.some(cc => cc.id === c.id));
+          depositedCombos.push(combo);
           
+          if (!botHasInitialMeld) {
+            setBotHasInitialMeld(true);
+            // Si c'est le premier dépôt de la manche, enregistrer le score
+            if (!playerHasInitialMeld) {
+              setFirstDepositScore(totalPoints);
+            }
+          }
+          break; // Une combo à la fois
+        }
+        
+        if (depositedCombos.length > 0) {
           setBot(prev => ({
             ...prev,
             hand: handAfterLay,
-            laid: [...prev.laid, combo],
-            score: prev.score + points
+            laid: [...prev.laid, ...depositedCombos],
+            score: prev.score + totalPoints
           }));
-          
-          if (!botHasInitialMeld) setBotHasInitialMeld(true);
-          break; // Une combo à la fois
         }
         
         // Défausser carte la moins utile

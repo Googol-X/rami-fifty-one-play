@@ -40,13 +40,28 @@ export default function Regles() {
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-foreground mb-3 flex items-center gap-2">
                   <span>🎯</span> Dépôt initial 51
                 </h2>
-                <p className="text-gray-800 dark:text-foreground leading-relaxed mb-2">
-                  Votre première combinaison doit totaliser au moins <span className="font-bold text-gray-900 dark:text-foreground text-lg bg-yellow-200 dark:bg-primary/20 px-2 py-0.5 rounded">51 points</span>. Les dépôts suivants sont libres.
-                </p>
-                <div className="mt-3 p-3 bg-orange-100 dark:bg-foreground/10 border border-orange-300 dark:border-foreground/20 rounded-lg">
-                  <p className="text-gray-900 dark:text-foreground font-semibold text-sm">
-                    SUITE OBLIGATOIRE
+                <div className="space-y-3">
+                  <p className="text-gray-800 dark:text-foreground leading-relaxed">
+                    Votre première combinaison doit totaliser au moins <span className="font-bold text-gray-900 dark:text-foreground text-lg bg-yellow-200 dark:bg-primary/20 px-2 py-0.5 rounded">51 points</span>.
                   </p>
+                  <div className="p-3 bg-orange-100 dark:bg-foreground/10 border border-orange-300 dark:border-foreground/20 rounded-lg">
+                    <p className="text-gray-900 dark:text-foreground font-semibold text-sm mb-2">
+                      📋 CONDITIONS OBLIGATOIRES pour le premier dépôt :
+                    </p>
+                    <ul className="text-sm text-gray-800 dark:text-foreground/90 space-y-1 ml-4">
+                      <li>• Au moins une SUITE (3+ cartes consécutives, même couleur)</li>
+                      <li>• Au moins une SÉRIE (3+ cartes même valeur, couleurs différentes)</li>
+                      <li>• Total ≥ 51 points</li>
+                    </ul>
+                  </div>
+                  <div className="p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700/50 rounded-lg">
+                    <p className="text-gray-900 dark:text-foreground font-semibold text-sm mb-1">
+                      ⚔️ RÈGLE DE COMPÉTITION
+                    </p>
+                    <p className="text-sm text-gray-800 dark:text-foreground/90">
+                      Si votre adversaire dépose en premier, vous devez <span className="font-bold">DÉPASSER son score</span> pour pouvoir déposer à votre tour !
+                    </p>
+                  </div>
                 </div>
               </section>
 
@@ -97,10 +112,17 @@ export default function Regles() {
                     <span className="font-bold bg-yellow-200 dark:bg-primary/20 px-1.5 py-0.5 rounded text-gray-900 dark:text-foreground">3.</span> Défaussez exactement 1 carte
                   </li>
                 </ol>
-                <div className="mt-3 p-3 bg-blue-100 dark:bg-foreground/10 border border-blue-300 dark:border-foreground/20 rounded-lg">
-                  <p className="text-gray-900 dark:text-foreground text-sm">
-                    💡 Vous pouvez aussi ajouter des cartes aux combinaisons déjà posées sur la table (vôtres ou adversaire)
-                  </p>
+                <div className="mt-3 space-y-2">
+                  <div className="p-3 bg-blue-100 dark:bg-foreground/10 border border-blue-300 dark:border-foreground/20 rounded-lg">
+                    <p className="text-gray-900 dark:text-foreground text-sm">
+                      💡 <span className="font-semibold">Astuce stratégique :</span> Vous pouvez ajouter des cartes aux combinaisons déjà posées sur la table (vôtres ou adversaire) pour vous débarrasser d&apos;un maximum de cartes !
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-100 dark:bg-green-900/20 border border-green-300 dark:border-green-700/50 rounded-lg">
+                    <p className="text-gray-900 dark:text-foreground text-sm">
+                      🤖 <span className="font-semibold">Le bot est intelligent :</span> Il peut créer des combinaisons, déposer quand il atteint 51+ points, et rajouter des cartes aux dépôts existants !
+                    </p>
+                  </div>
                 </div>
               </section>
 
