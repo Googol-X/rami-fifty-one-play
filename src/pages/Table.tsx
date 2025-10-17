@@ -760,35 +760,53 @@ export default function Table() {
           <div className="lg:col-span-2 space-y-6">
               {/* Zone du Bot */}
               <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 rounded-xl p-4 border-2 border-red-200 dark:border-red-800">
-                <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-4 flex items-center gap-2">
-                  🤖 Bot
-                  <span className="text-sm font-normal text-muted-foreground">({bot.hand.length} cartes en main)</span>
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
+                    🤖 Bot
+                    <span className="text-sm font-normal text-muted-foreground">({bot.hand.length} cartes)</span>
+                  </h3>
+                  {bot.laid.length > 0 && (
+                    <div className="bg-red-600 dark:bg-red-500 text-white px-4 py-2 rounded-lg shadow-md">
+                      <div className="text-xs font-medium opacity-90">Total déposé</div>
+                      <div className="text-2xl font-bold">
+                        {bot.laid.reduce((sum, combo) => {
+                          const validation = validateMeld(combo);
+                          return sum + (validation.points || 0);
+                        }, 0)} pts
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
                 {/* Dépôts du Bot */}
                 {bot.laid.length > 0 && (
-                  <div className="mb-3">
-                    <h4 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-2 flex items-center gap-2">
-                      📋 Combinaisons déposées par le Bot
-                      <span className="text-xs font-normal text-muted-foreground">(Cliquez sur + pour ajouter)</span>
+                  <div className="mb-4 bg-white/40 dark:bg-black/20 rounded-lg p-3 border border-red-300 dark:border-red-700">
+                    <h4 className="text-base font-bold text-red-700 dark:text-red-300 mb-3 flex items-center gap-2">
+                      📋 Combinaisons du Bot
+                      <span className="text-xs font-normal text-muted-foreground">(Vous pouvez y ajouter vos cartes)</span>
                     </h4>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
+                    <div className="flex gap-3 overflow-x-auto pb-2">
                       {bot.laid.map((combo, i) => {
                         const validation = validateMeld(combo);
                         const isTargeted = extendingMeld?.owner === 'bot' && extendingMeld?.index === i;
                         return (
                           <div 
                             key={i} 
-                            className={`bg-white/80 dark:bg-background/60 rounded-lg p-2 border-2 flex-shrink-0 transition-all ${
+                            className={`bg-white dark:bg-background rounded-xl p-3 border-3 flex-shrink-0 transition-all min-w-fit ${
                               isTargeted 
-                                ? 'border-primary shadow-lg shadow-primary/50 ring-2 ring-primary/30' 
-                                : 'border-red-200 dark:border-red-700 hover:border-red-400 dark:hover:border-red-500'
+                                ? 'border-primary shadow-2xl shadow-primary/50 ring-4 ring-primary/40 scale-105' 
+                                : 'border-red-300 dark:border-red-600 hover:border-red-500 dark:hover:border-red-400 shadow-lg'
                             }`}
                           >
-                            <div className="flex items-center justify-between gap-2 mb-2">
-                              <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                {validation.type === 'set' ? '🎯 Série' : '📊 Suite'} • {validation.points}pts
-                              </span>
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                              <div className="flex flex-col">
+                                <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">
+                                  {validation.type === 'set' ? '🎯 Série' : '📊 Suite'} #{i + 1}
+                                </span>
+                                <span className="text-2xl font-extrabold text-red-700 dark:text-red-300">
+                                  {validation.points} pts
+                                </span>
+                              </div>
                               <Button
                                 size="sm"
                                 variant={isTargeted ? "default" : "outline"}
@@ -816,20 +834,28 @@ export default function Table() {
                                   }
                                 }}
                                 disabled={!hasDrawn || (extendingMeld !== null && !isTargeted) || roundOver}
-                                className="h-6 px-3 text-xs font-bold"
+                                className="h-8 px-4 text-sm font-bold"
                               >
-                                {isTargeted ? '✕' : '+ Ajouter'}
+                                {isTargeted ? '✕ Annuler' : '+ Ajouter'}
                               </Button>
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex gap-2">
                               {combo.map((card) => (
-                                <Card key={card.id} card={card} className="w-10 h-14 sm:w-12 sm:h-16" />
+                                <Card key={card.id} card={card} className="w-14 h-20 sm:w-16 sm:h-24" />
                               ))}
                             </div>
                           </div>
                         );
                       })}
                     </div>
+                  </div>
+                )}
+                
+                {bot.laid.length === 0 && (
+                  <div className="mb-4 bg-red-100/50 dark:bg-red-900/20 rounded-lg p-4 border border-dashed border-red-300 dark:border-red-700 text-center">
+                    <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                      Le bot n'a pas encore déposé de combinaisons
+                    </p>
                   </div>
                 )}
 
@@ -856,35 +882,53 @@ export default function Table() {
 
               {/* Zone du Joueur */}
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800">
-                <h3 className="text-xl font-bold text-blue-700 dark:text-blue-400 mb-4 flex items-center gap-2">
-                  👤 Vous
-                  <span className="text-sm font-normal text-muted-foreground">({player.hand.length} cartes en main)</span>
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                    👤 Vous
+                    <span className="text-sm font-normal text-muted-foreground">({player.hand.length} cartes)</span>
+                  </h3>
+                  {player.laid.length > 0 && (
+                    <div className="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md">
+                      <div className="text-xs font-medium opacity-90">Total déposé</div>
+                      <div className="text-2xl font-bold">
+                        {player.laid.reduce((sum, combo) => {
+                          const validation = validateMeld(combo);
+                          return sum + (validation.points || 0);
+                        }, 0)} pts
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
                 {/* Dépôts du Joueur */}
                 {player.laid.length > 0 && (
-                  <div className="mb-3">
-                    <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
-                      📋 Vos combinaisons déposées
-                      <span className="text-xs font-normal text-muted-foreground">(Cliquez sur + pour ajouter)</span>
+                  <div className="mb-4 bg-white/40 dark:bg-black/20 rounded-lg p-3 border border-blue-300 dark:border-blue-700">
+                    <h4 className="text-base font-bold text-blue-700 dark:text-blue-300 mb-3 flex items-center gap-2">
+                      📋 Vos Combinaisons
+                      <span className="text-xs font-normal text-muted-foreground">(Vous pouvez y ajouter d'autres cartes)</span>
                     </h4>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
+                    <div className="flex gap-3 overflow-x-auto pb-2">
                       {player.laid.map((combo, i) => {
                         const validation = validateMeld(combo);
                         const isTargeted = extendingMeld?.owner === 'player' && extendingMeld?.index === i;
                         return (
                           <div 
                             key={i} 
-                            className={`bg-white/80 dark:bg-background/60 rounded-lg p-2 border-2 flex-shrink-0 transition-all ${
+                            className={`bg-white dark:bg-background rounded-xl p-3 border-3 flex-shrink-0 transition-all min-w-fit ${
                               isTargeted 
-                                ? 'border-primary shadow-lg shadow-primary/50 ring-2 ring-primary/30' 
-                                : 'border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500'
+                                ? 'border-primary shadow-2xl shadow-primary/50 ring-4 ring-primary/40 scale-105' 
+                                : 'border-blue-300 dark:border-blue-600 hover:border-blue-500 dark:hover:border-blue-400 shadow-lg'
                             }`}
                           >
-                            <div className="flex items-center justify-between gap-2 mb-2">
-                              <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
-                                {validation.type === 'set' ? '🎯 Série' : '📊 Suite'} • {validation.points}pts
-                              </span>
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                              <div className="flex flex-col">
+                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                                  {validation.type === 'set' ? '🎯 Série' : '📊 Suite'} #{i + 1}
+                                </span>
+                                <span className="text-2xl font-extrabold text-blue-700 dark:text-blue-300">
+                                  {validation.points} pts
+                                </span>
+                              </div>
                               <Button
                                 size="sm"
                                 variant={isTargeted ? "default" : "outline"}
@@ -912,14 +956,14 @@ export default function Table() {
                                   }
                                 }}
                                 disabled={!hasDrawn || (extendingMeld !== null && !isTargeted) || roundOver}
-                                className="h-6 px-3 text-xs font-bold"
+                                className="h-8 px-4 text-sm font-bold"
                               >
-                                {isTargeted ? '✕' : '+ Ajouter'}
+                                {isTargeted ? '✕ Annuler' : '+ Ajouter'}
                               </Button>
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex gap-2">
                               {combo.map((card) => (
-                                <Card key={card.id} card={card} className="w-10 h-14 sm:w-12 sm:h-16" />
+                                <Card key={card.id} card={card} className="w-14 h-20 sm:w-16 sm:h-24" />
                               ))}
                             </div>
                           </div>
