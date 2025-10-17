@@ -768,19 +768,30 @@ export default function Table() {
                 {/* Dépôts du Bot */}
                 {bot.laid.length > 0 && (
                   <div className="mb-3">
-                    <h4 className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1.5">Dépôts :</h4>
-                    <div className="flex gap-1.5 overflow-x-auto pb-1.5">
+                    <h4 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-2 flex items-center gap-2">
+                      📋 Combinaisons déposées par le Bot
+                      <span className="text-xs font-normal text-muted-foreground">(Cliquez sur + pour ajouter)</span>
+                    </h4>
+                    <div className="flex gap-2 overflow-x-auto pb-2">
                       {bot.laid.map((combo, i) => {
                         const validation = validateMeld(combo);
+                        const isTargeted = extendingMeld?.owner === 'bot' && extendingMeld?.index === i;
                         return (
-                          <div key={i} className="bg-white/60 dark:bg-background/40 rounded-lg p-1.5 border border-red-200 dark:border-red-700 flex-shrink-0">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
-                                {validation.type === 'set' ? '🎯' : '📊'} {validation.points}pts
+                          <div 
+                            key={i} 
+                            className={`bg-white/80 dark:bg-background/60 rounded-lg p-2 border-2 flex-shrink-0 transition-all ${
+                              isTargeted 
+                                ? 'border-primary shadow-lg shadow-primary/50 ring-2 ring-primary/30' 
+                                : 'border-red-200 dark:border-red-700 hover:border-red-400 dark:hover:border-red-500'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                {validation.type === 'set' ? '🎯 Série' : '📊 Suite'} • {validation.points}pts
                               </span>
                               <Button
                                 size="sm"
-                                variant="ghost"
+                                variant={isTargeted ? "default" : "outline"}
                                 onClick={() => {
                                   if (pendingMelds.length > 0) {
                                     toast({
@@ -790,17 +801,29 @@ export default function Table() {
                                     });
                                     return;
                                   }
-                                  setExtendingMeld({ owner: 'bot', index: i });
+                                  if (isTargeted) {
+                                    setExtendingMeld(null);
+                                    toast({
+                                      title: "Annulé",
+                                      description: "Sélection annulée"
+                                    });
+                                  } else {
+                                    setExtendingMeld({ owner: 'bot', index: i });
+                                    toast({
+                                      title: "✓ Mode ajout activé",
+                                      description: "Sélectionnez une carte de votre main pour l'ajouter à cette combinaison"
+                                    });
+                                  }
                                 }}
-                                disabled={!hasDrawn || extendingMeld !== null || roundOver}
-                                className="h-5 px-2 text-[10px]"
+                                disabled={!hasDrawn || (extendingMeld !== null && !isTargeted) || roundOver}
+                                className="h-6 px-3 text-xs font-bold"
                               >
-                                +
+                                {isTargeted ? '✕' : '+ Ajouter'}
                               </Button>
                             </div>
-                            <div className="flex gap-0.5">
+                            <div className="flex gap-1">
                               {combo.map((card) => (
-                                <Card key={card.id} card={card} className="w-8 h-12" />
+                                <Card key={card.id} card={card} className="w-10 h-14 sm:w-12 sm:h-16" />
                               ))}
                             </div>
                           </div>
@@ -841,19 +864,30 @@ export default function Table() {
                 {/* Dépôts du Joueur */}
                 {player.laid.length > 0 && (
                   <div className="mb-3">
-                    <h4 className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1.5">Vos dépôts :</h4>
-                    <div className="flex gap-1.5 overflow-x-auto pb-1.5">
+                    <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
+                      📋 Vos combinaisons déposées
+                      <span className="text-xs font-normal text-muted-foreground">(Cliquez sur + pour ajouter)</span>
+                    </h4>
+                    <div className="flex gap-2 overflow-x-auto pb-2">
                       {player.laid.map((combo, i) => {
                         const validation = validateMeld(combo);
+                        const isTargeted = extendingMeld?.owner === 'player' && extendingMeld?.index === i;
                         return (
-                          <div key={i} className="bg-white/60 dark:bg-background/40 rounded-lg p-1.5 border border-blue-200 dark:border-blue-700 flex-shrink-0">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
-                                {validation.type === 'set' ? '🎯' : '📊'} {validation.points}pts
+                          <div 
+                            key={i} 
+                            className={`bg-white/80 dark:bg-background/60 rounded-lg p-2 border-2 flex-shrink-0 transition-all ${
+                              isTargeted 
+                                ? 'border-primary shadow-lg shadow-primary/50 ring-2 ring-primary/30' 
+                                : 'border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                                {validation.type === 'set' ? '🎯 Série' : '📊 Suite'} • {validation.points}pts
                               </span>
                               <Button
                                 size="sm"
-                                variant="ghost"
+                                variant={isTargeted ? "default" : "outline"}
                                 onClick={() => {
                                   if (pendingMelds.length > 0) {
                                     toast({
@@ -863,17 +897,29 @@ export default function Table() {
                                     });
                                     return;
                                   }
-                                  setExtendingMeld({ owner: 'player', index: i });
+                                  if (isTargeted) {
+                                    setExtendingMeld(null);
+                                    toast({
+                                      title: "Annulé",
+                                      description: "Sélection annulée"
+                                    });
+                                  } else {
+                                    setExtendingMeld({ owner: 'player', index: i });
+                                    toast({
+                                      title: "✓ Mode ajout activé",
+                                      description: "Sélectionnez une carte de votre main pour l'ajouter à cette combinaison"
+                                    });
+                                  }
                                 }}
-                                disabled={!hasDrawn || extendingMeld !== null || roundOver}
-                                className="h-5 px-2 text-[10px]"
+                                disabled={!hasDrawn || (extendingMeld !== null && !isTargeted) || roundOver}
+                                className="h-6 px-3 text-xs font-bold"
                               >
-                                +
+                                {isTargeted ? '✕' : '+ Ajouter'}
                               </Button>
                             </div>
-                            <div className="flex gap-0.5">
+                            <div className="flex gap-1">
                               {combo.map((card) => (
-                                <Card key={card.id} card={card} className="w-8 h-12" />
+                                <Card key={card.id} card={card} className="w-10 h-14 sm:w-12 sm:h-16" />
                               ))}
                             </div>
                           </div>
@@ -883,9 +929,28 @@ export default function Table() {
                   </div>
                 )}
 
+              {/* Message d'aide pour le mode extension */}
+              {extendingMeld && (
+                <div className="mb-4 bg-primary/10 border-2 border-primary rounded-lg p-3 animate-fade-in">
+                  <p className="text-sm font-semibold text-primary flex items-center gap-2">
+                    ✨ Mode ajout activé
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Sélectionnez une carte de votre main pour l'ajouter à la combinaison {extendingMeld.owner === 'player' ? 'vôtre' : 'du Bot'} #{extendingMeld.index + 1}
+                  </p>
+                </div>
+              )}
+
               {/* Main du Joueur */}
               <div className="mobile-spacing">
-                <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 high-contrast">Votre main :</h4>
+                <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 high-contrast">
+                  Votre main :
+                  {extendingMeld && (
+                    <span className="ml-2 text-xs text-primary font-normal animate-pulse">
+                      ← Cliquez sur une carte pour l'ajouter
+                    </span>
+                  )}
+                </h4>
                 <HandReorder
                   hand={player.hand}
                   selected={selectedCards}
