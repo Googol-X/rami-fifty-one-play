@@ -6,7 +6,6 @@ import { useToast } from '@/hooks/use-toast';
 interface GameState {
   deck: CardType[];
   discard_pile: CardType[];
-  player_hands: { [key: number]: CardType[] };
   player_melds: { [key: number]: CardType[][] };
   current_turn: number;
   phase: 'draw' | 'play' | 'discard';
@@ -15,6 +14,7 @@ interface GameState {
 
 export const useMultiplayer = (gameId: string | null) => {
   const [gameState, setGameState] = useState<GameState | null>(null);
+  const [myHand, setMyHand] = useState<CardType[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState<number | null>(null);
   const [isHost, setIsHost] = useState(false);
@@ -56,6 +56,16 @@ export const useMultiplayer = (gameId: string | null) => {
         },
         () => loadPlayers()
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_hands',
+          filter: `game_id=eq.${gameId}`
+        },
+        () => loadMyHand()
+      )
       .subscribe();
 
     return () => {
@@ -66,6 +76,7 @@ export const useMultiplayer = (gameId: string | null) => {
   const loadGameData = async () => {
     await loadPlayers();
     await loadGameState();
+    await loadMyHand();
   };
 
   const loadPlayers = async () => {
@@ -122,7 +133,6 @@ export const useMultiplayer = (gameId: string | null) => {
       setGameState({
         deck: data.deck as unknown as CardType[],
         discard_pile: data.discard_pile as unknown as CardType[],
-        player_hands: data.player_hands as unknown as { [key: number]: CardType[] },
         player_melds: data.player_melds as unknown as { [key: number]: CardType[][] },
         current_turn: data.current_turn,
         phase: data.phase as 'draw' | 'play' | 'discard',
@@ -131,43 +141,122 @@ export const useMultiplayer = (gameId: string | null) => {
     }
   };
 
-  const updateGameState = async (newState: Partial<GameState>) => {
-    if (!gameId) return;
+  const loadMyHand = async () => {
+    if (!gameId || !userId) return;
 
-    const { error } = await supabase
-      .from('game_state')
-      .update(newState as any)
-      .eq('game_id', gameId);
+    const { data, error } = await supabase
+      .from('player_hands')
+      .select('cards')
+      .eq('game_id', gameId)
+      .eq('player_id', userId)
+      .maybeSingle();
 
     if (error) {
-      console.error('Error updating game state:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Impossible de mettre à jour la partie',
-        variant: 'destructive',
-      });
+      console.error('Error loading player hand:', error);
+      return;
+    }
+
+    if (data) {
+      setMyHand(data.cards as unknown as CardType[]);
     }
   };
 
-  const initializeGame = async (initialState: GameState) => {
+  const updateGameState = async (newState: Partial<GameState> & { player_hands?: { [key: number]: CardType[] } }) => {
     if (!gameId) return;
 
-    const { error } = await supabase
+    // Extract player_hands if provided
+    const { player_hands, ...stateWithoutHands } = newState;
+
+    // Update game state (without hands)
+    if (Object.keys(stateWithoutHands).length > 0) {
+      const { error: stateError } = await supabase
+        .from('game_state')
+        .update(stateWithoutHands as any)
+        .eq('game_id', gameId);
+
+      if (stateError) {
+        console.error('Error updating game state:', stateError);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de mettre à jour la partie',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
+    // Update player hands if provided
+    if (player_hands) {
+      for (const [playerIndexStr, cards] of Object.entries(player_hands)) {
+        const playerIndex = parseInt(playerIndexStr);
+        const player = players.find((p: any) => p.player_index === playerIndex);
+        
+        if (player) {
+          const { error: handError } = await supabase
+            .from('player_hands')
+            .update({ cards: cards as any })
+            .eq('game_id', gameId)
+            .eq('player_id', player.player_id);
+
+          if (handError) {
+            console.error('Error updating player hand:', handError);
+          }
+        }
+      }
+    }
+  };
+
+  const initializeGame = async (initialState: GameState & { player_hands: { [key: number]: CardType[] } }) => {
+    if (!gameId) return;
+
+    const { player_hands, ...stateWithoutHands } = initialState;
+
+    // Insert game state (without hands)
+    const { error: stateError } = await supabase
       .from('game_state')
       .insert({
         game_id: gameId,
-        ...initialState as any,
+        ...stateWithoutHands as any,
       });
 
-    if (error) {
-      console.error('Error initializing game:', error);
+    if (stateError) {
+      console.error('Error initializing game:', stateError);
       toast({
         title: 'Erreur',
         description: 'Impossible d\'initialiser la partie',
         variant: 'destructive',
       });
+      return;
     }
 
+    // Insert player hands
+    const handsToInsert = Object.entries(player_hands).map(([playerIndexStr, cards]) => {
+      const playerIndex = parseInt(playerIndexStr);
+      const player = players.find((p: any) => p.player_index === playerIndex);
+      
+      return {
+        game_id: gameId,
+        player_id: player.player_id,
+        player_index: playerIndex,
+        cards: cards as any,
+      };
+    });
+
+    const { error: handsError } = await supabase
+      .from('player_hands')
+      .insert(handsToInsert);
+
+    if (handsError) {
+      console.error('Error initializing player hands:', handsError);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de créer les mains des joueurs',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Update game status
     await supabase
       .from('games')
       .update({ status: 'playing', started_at: new Date().toISOString() })
@@ -176,6 +265,7 @@ export const useMultiplayer = (gameId: string | null) => {
 
   return {
     gameState,
+    myHand,
     players,
     currentPlayerIndex,
     isHost,

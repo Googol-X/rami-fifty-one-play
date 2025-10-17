@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +8,30 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Layout } from '@/components/Layout';
+
+// Validation schemas
+const signupSchema = z.object({
+  username: z.string()
+    .trim()
+    .min(3, 'Le nom d\'utilisateur doit contenir au moins 3 caractères')
+    .max(20, 'Le nom d\'utilisateur doit contenir moins de 20 caractères')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Le nom d\'utilisateur ne peut contenir que des lettres, chiffres, tirets et underscores'),
+  email: z.string()
+    .trim()
+    .email('Adresse email invalide')
+    .max(255, 'L\'email doit contenir moins de 255 caractères'),
+  password: z.string()
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .max(72, 'Le mot de passe doit contenir moins de 72 caractères')
+    .regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une lettre majuscule')
+    .regex(/[a-z]/, 'Le mot de passe doit contenir au moins une lettre minuscule')
+    .regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre')
+});
+
+const loginSchema = z.object({
+  email: z.string().trim().email('Adresse email invalide'),
+  password: z.string().min(1, 'Le mot de passe est requis')
+});
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -38,19 +63,22 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate inputs
       if (isLogin) {
+        const validated = loginSchema.parse({ email, password });
         const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: validated.email,
+          password: validated.password,
         });
         if (error) throw error;
         toast({ title: 'Connexion réussie!' });
       } else {
+        const validated = signupSchema.parse({ email, password, username });
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: validated.email,
+          password: validated.password,
           options: {
-            data: { username },
+            data: { username: validated.username },
             emailRedirectTo: `${window.location.origin}/lobby`,
           },
         });
@@ -58,11 +86,19 @@ const Auth = () => {
         toast({ title: 'Compte créé avec succès!' });
       }
     } catch (error: any) {
-      toast({
-        title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: 'Erreur de validation',
+          description: error.errors[0].message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Erreur',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }

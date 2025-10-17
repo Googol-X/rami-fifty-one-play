@@ -141,6 +141,44 @@ export type Database = {
           },
         ]
       }
+      player_hands: {
+        Row: {
+          cards: Json
+          created_at: string
+          game_id: string
+          id: string
+          player_id: string
+          player_index: number
+          updated_at: string
+        }
+        Insert: {
+          cards?: Json
+          created_at?: string
+          game_id: string
+          id?: string
+          player_id: string
+          player_index: number
+          updated_at?: string
+        }
+        Update: {
+          cards?: Json
+          created_at?: string
+          game_id?: string
+          id?: string
+          player_id?: string
+          player_index?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_hands_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
