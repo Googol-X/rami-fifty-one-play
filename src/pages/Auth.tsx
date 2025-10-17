@@ -35,6 +35,7 @@ const loginSchema = z.object({
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isResetPassword, setIsResetPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -57,6 +58,40 @@ const Auth = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const validated = z.string().trim().email('Adresse email invalide').parse(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(validated, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      if (error) throw error;
+      toast({ 
+        title: 'Email envoyé!', 
+        description: 'Vérifiez votre boîte mail pour réinitialiser votre mot de passe.' 
+      });
+      setIsResetPassword(false);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: 'Erreur de validation',
+          description: error.errors[0].message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Erreur',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,15 +144,44 @@ const Auth = () => {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>{isLogin ? 'Connexion' : 'Inscription'}</CardTitle>
+            <CardTitle>
+              {isResetPassword ? 'Réinitialiser le mot de passe' : isLogin ? 'Connexion' : 'Inscription'}
+            </CardTitle>
             <CardDescription>
-              {isLogin
+              {isResetPassword
+                ? 'Entrez votre email pour recevoir un lien de réinitialisation'
+                : isLogin
                 ? 'Connectez-vous pour jouer en ligne'
                 : 'Créez un compte pour jouer avec vos amis'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleAuth} className="space-y-4">
+            {isResetPassword ? (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Envoi...' : 'Envoyer le lien'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="w-full"
+                  onClick={() => setIsResetPassword(false)}
+                >
+                  Retour à la connexion
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleAuth} className="space-y-4">
               {!isLogin && (
                 <div className="space-y-2">
                   <Label htmlFor="username">Nom d'utilisateur</Label>
@@ -153,6 +217,16 @@ const Auth = () => {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Chargement...' : isLogin ? 'Se connecter' : "S'inscrire"}
               </Button>
+              {isLogin && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="w-full text-xs"
+                  onClick={() => setIsResetPassword(true)}
+                >
+                  Mot de passe oublié ?
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="link"
@@ -164,6 +238,7 @@ const Auth = () => {
                   : 'Déjà un compte ? Se connecter'}
               </Button>
             </form>
+            )}
           </CardContent>
         </Card>
       </div>
