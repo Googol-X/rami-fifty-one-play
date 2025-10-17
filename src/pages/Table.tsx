@@ -758,12 +758,23 @@ export default function Table() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-              {/* Zone du Bot */}
+              {/* Zone de l'adversaire (Bot ou autre joueur) */}
               <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 rounded-xl p-4 border-2 border-red-200 dark:border-red-800">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
-                    🤖 Bot
-                    <span className="text-sm font-normal text-muted-foreground">({bot.hand.length} cartes)</span>
+                    {isMultiplayer && players.length > 1 ? (
+                      <>
+                        👤 {players.find((p: any) => p.player_index !== currentPlayerIndex)?.profiles?.username || 'Adversaire'}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          {isMultiplayer ? '(en attente...)' : `(${bot.hand.length} cartes)`}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        🤖 Bot
+                        <span className="text-sm font-normal text-muted-foreground">({bot.hand.length} cartes)</span>
+                      </>
+                    )}
                   </h3>
                   {bot.laid.length > 0 && (
                     <div className="bg-red-600 dark:bg-red-500 text-white px-4 py-2 rounded-lg shadow-md">
@@ -778,11 +789,11 @@ export default function Table() {
                   )}
                 </div>
                 
-                {/* Dépôts du Bot */}
-                {bot.laid.length > 0 && (
+                {/* Dépôts de l'adversaire */}
+                {!isMultiplayer && bot.laid.length > 0 && (
                   <div className="mb-4 bg-white/40 dark:bg-black/20 rounded-lg p-3 border border-red-300 dark:border-red-700">
                     <h4 className="text-base font-bold text-red-700 dark:text-red-300 mb-3 flex items-center gap-2">
-                      📋 Combinaisons du Bot
+                      📋 Combinaisons {isMultiplayer ? 'de l\'adversaire' : 'du Bot'}
                       <span className="text-xs font-normal text-muted-foreground">(Vous pouvez y ajouter vos cartes)</span>
                     </h4>
                     <div className="flex gap-3 overflow-x-auto pb-2">
@@ -851,26 +862,36 @@ export default function Table() {
                   </div>
                 )}
                 
-                {bot.laid.length === 0 && (
+                {!isMultiplayer && bot.laid.length === 0 && (
                   <div className="mb-4 bg-red-100/50 dark:bg-red-900/20 rounded-lg p-4 border border-dashed border-red-300 dark:border-red-700 text-center">
                     <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                      Le bot n'a pas encore déposé de combinaisons
+                      {isMultiplayer ? 'L\'adversaire' : 'Le bot'} n'a pas encore déposé de combinaisons
                     </p>
                   </div>
                 )}
 
-                {/* Main cachée du Bot */}
-                <div className="flex gap-2 flex-wrap">
-                  {bot.hand.map((_, index) => (
+                {isMultiplayer && players.length > 1 && (
+                  <div className="mb-4 bg-blue-100/50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-300 dark:border-blue-700 text-center">
+                    <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                      🎮 Partie multijoueur active avec {players.find((p: any) => p.player_index !== currentPlayerIndex)?.profiles?.username}
+                    </p>
+                  </div>
+                )}
+
+                {/* Main cachée (seulement en mode solo) */}
+                {!isMultiplayer && (
+                  <div className="flex gap-2 flex-wrap">
+                    {bot.hand.map((_, index) => (
                     <div
                       key={index}
                       className="w-14 h-20 rounded-lg border-2 border-red-300 dark:border-red-700 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-800/40 flex items-center justify-center shadow-md"
                       aria-label={`Carte cachée ${index + 1}`}
                     >
                       <span className="text-2xl">🂠</span>
-                    </div>
-                  ))}
-                </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               
               <GamePile
