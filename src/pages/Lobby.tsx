@@ -28,7 +28,9 @@ const Lobby = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
-        navigate('/auth');
+        // Préserver le paramètre invite lors de la redirection
+        const redirectUrl = inviteGameId ? `/auth?invite=${inviteGameId}` : '/auth';
+        navigate(redirectUrl);
       } else {
         setUser(session.user);
       }
@@ -36,14 +38,15 @@ const Lobby = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
-        navigate('/auth');
+        const redirectUrl = inviteGameId ? `/auth?invite=${inviteGameId}` : '/auth';
+        navigate(redirectUrl);
       } else {
         setUser(session.user);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, inviteGameId]);
 
   useEffect(() => {
     if (user) {

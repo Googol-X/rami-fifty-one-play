@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -41,23 +41,27 @@ const Auth = () => {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteGameId = searchParams.get('invite');
   const { toast } = useToast();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate('/lobby');
+        const redirectUrl = inviteGameId ? `/lobby?invite=${inviteGameId}` : '/lobby';
+        navigate(redirectUrl);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate('/lobby');
+        const redirectUrl = inviteGameId ? `/lobby?invite=${inviteGameId}` : '/lobby';
+        navigate(redirectUrl);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, inviteGameId]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +118,9 @@ const Auth = () => {
           password: validated.password,
           options: {
             data: { username: validated.username },
-            emailRedirectTo: `${window.location.origin}/lobby`,
+            emailRedirectTo: inviteGameId 
+              ? `${window.location.origin}/lobby?invite=${inviteGameId}`
+              : `${window.location.origin}/lobby`,
           },
         });
         if (error) throw error;
