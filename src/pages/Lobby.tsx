@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Layout } from '@/components/Layout';
-import { Users, Play, LogOut } from 'lucide-react';
+import { Users, Play, LogOut, Copy } from 'lucide-react';
 
 interface Game {
   id: string;
@@ -110,6 +110,15 @@ const Lobby = () => {
 
       if (playerError) throw playerError;
 
+      // Générer et copier le lien d'invitation
+      const inviteLink = `${window.location.origin}/lobby?invite=${game.id}`;
+      await navigator.clipboard.writeText(inviteLink);
+      
+      toast({
+        title: 'Partie créée !',
+        description: 'Le lien d\'invitation a été copié dans votre presse-papier',
+      });
+
       navigate(`/table?gameId=${game.id}`);
     } catch (error: any) {
       toast({
@@ -211,7 +220,7 @@ const Lobby = () => {
                   <p className="text-muted-foreground text-sm">Aucune partie disponible</p>
                 ) : (
                   <div className="space-y-2">
-                    {games.map((game) => (
+                     {games.map((game) => (
                       <div
                         key={game.id}
                         className="flex items-center justify-between p-3 border rounded-lg"
@@ -223,14 +232,30 @@ const Lobby = () => {
                             {game.game_players.length}/4 joueurs
                           </p>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => joinGame(game.id)}
-                          disabled={loading || game.game_players.length >= 4}
-                        >
-                          <Play className="w-4 h-4 mr-1" />
-                          Rejoindre
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              const inviteLink = `${window.location.origin}/lobby?invite=${game.id}`;
+                              await navigator.clipboard.writeText(inviteLink);
+                              toast({
+                                title: 'Lien copié !',
+                                description: 'Partagez ce lien avec vos amis',
+                              });
+                            }}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => joinGame(game.id)}
+                            disabled={loading || game.game_players.length >= 4}
+                          >
+                            <Play className="w-4 h-4 mr-1" />
+                            Rejoindre
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
