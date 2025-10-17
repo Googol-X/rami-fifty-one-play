@@ -13,8 +13,9 @@ export function Card({ card, onClick, selected, className }: CardProps) {
   if (!card) {
     return (
       <div className={cn(
-        "w-16 h-24 rounded-lg bg-secondary/50 border-2 border-border",
+        "w-16 sm:w-20 h-24 sm:h-28 rounded-lg bg-secondary/50 border-2 border-border",
         "flex items-center justify-center text-muted-foreground text-xs",
+        "shadow-md hover:shadow-lg transition-shadow",
         className
       )}
       role="img"
@@ -40,12 +41,12 @@ export function Card({ card, onClick, selected, className }: CardProps) {
         }
       } : undefined}
       className={cn(
-        "w-16 h-24 rounded-lg bg-card border-2 shadow-lg",
+        "w-16 sm:w-20 h-24 sm:h-28 rounded-lg bg-card border-2 shadow-lg",
         "flex flex-col items-center justify-between p-2",
-        "transition-all duration-200",
+        "transition-all duration-300 card-slide-in",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        selected && "ring-4 ring-primary -translate-y-2 scale-105",
-        onClick && "cursor-pointer hover:scale-105 hover:shadow-xl active:scale-95",
+        selected && "ring-4 ring-primary -translate-y-3 scale-110 shadow-2xl shadow-primary/50",
+        onClick && "cursor-pointer hover:scale-105 hover:shadow-xl hover:-translate-y-1 active:scale-95",
         !onClick && "cursor-default",
         className
       )}
@@ -55,19 +56,19 @@ export function Card({ card, onClick, selected, className }: CardProps) {
       tabIndex={onClick ? 0 : undefined}
     >
       <div className={cn(
-        "text-xl font-bold",
+        "text-xl sm:text-2xl font-bold transition-colors",
         isRedCard ? "text-accent" : "text-card-foreground"
       )} aria-hidden="true">
         {card.rank}
       </div>
       <div className={cn(
-        "text-2xl",
+        "text-2xl sm:text-3xl transition-colors",
         isRedCard ? "text-accent" : "text-card-foreground"
       )} aria-hidden="true">
         {card.suit}
       </div>
       <div className={cn(
-        "text-xl font-bold",
+        "text-xl sm:text-2xl font-bold transition-colors",
         isRedCard ? "text-accent" : "text-card-foreground"
       )} aria-hidden="true">
         {card.rank}

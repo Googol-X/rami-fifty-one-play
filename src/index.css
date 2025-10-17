@@ -35,6 +35,10 @@ All colors MUST be HSL.
     --accent: 0 72% 51%;
     --accent-foreground: 0 0% 98%;
 
+    /* Succès - vert validé */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
@@ -107,5 +111,82 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background-image: 
+      radial-gradient(circle at 20% 50%, hsl(140 40% 28% / 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, hsl(140 30% 22% / 0.3) 0%, transparent 50%);
+  }
+}
+
+@layer utilities {
+  /* Animations de feedback */
+  .action-valid {
+    animation: pulse-success 0.5s ease-out;
+  }
+  
+  .action-invalid {
+    animation: shake 0.4s ease-out;
+  }
+  
+  @keyframes pulse-success {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(142 76% 36% / 0.7); }
+    50% { box-shadow: 0 0 0 10px hsl(142 76% 36% / 0); }
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+  
+  /* Effet de glissement de carte */
+  .card-slide-in {
+    animation: slide-in 0.3s ease-out;
+  }
+  
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Texture de table */
+  .table-texture {
+    background-image: 
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        hsl(140 20% 30% / 0.1) 2px,
+        hsl(140 20% 30% / 0.1) 4px
+      );
+  }
+
+  /* Mobile: Boutons d'action en bas */
+  @media (max-width: 640px) {
+    .mobile-action-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem;
+      background: linear-gradient(to top, hsl(var(--background)) 80%, transparent);
+      backdrop-filter: blur(8px);
+      z-index: 40;
+      border-top: 1px solid hsl(var(--border) / 0.5);
+    }
+
+    .mobile-spacing {
+      padding-bottom: 6rem;
+    }
+  }
+
+  /* Amélioration du contraste */
+  .high-contrast {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   }
 }

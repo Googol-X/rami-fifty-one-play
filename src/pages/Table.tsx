@@ -23,6 +23,7 @@ import { RoundScore } from '@/components/RoundScore';
 import { LiveAnnouncer } from '@/components/LiveAnnouncer';
 import { Layout } from '@/components/Layout';
 import { Card } from '@/components/Card';
+import { GameTutorial } from '@/components/GameTutorial';
 import { useToast } from '@/hooks/use-toast';
 import { useGameScore } from '@/hooks/useGameScore';
 import { useMultiplayer } from '@/hooks/useMultiplayer';
@@ -621,6 +622,7 @@ export default function Table() {
 
   return (
     <Layout gameInProgress={!roundOver && (player.hand.length > 0 || bot.hand.length > 0)}>
+      <GameTutorial />
       <LiveAnnouncer message={liveMessage} />
       
       {roundOver && roundWinner && (
@@ -640,22 +642,34 @@ export default function Table() {
         />
       )}
       
-      <div className="p-4">
+      <div className="p-4 md:p-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <div className="text-sm text-muted-foreground" role="status" aria-live="polite">
-              Manche {gameScore.rounds.length + 1} • Score global: {gameScore.playerTotal} - {gameScore.botTotal}
+          {/* Statut de la partie - Zone d'information améliorée */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 bg-secondary/30 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+            <div className="flex flex-col gap-2">
+              <div className="text-sm font-medium text-muted-foreground" role="status" aria-live="polite">
+                <span className="text-primary font-bold">Manche {gameScore.rounds.length + 1}</span>
+                <span className="mx-2">•</span>
+                <span>Score: {gameScore.playerTotal} - {gameScore.botTotal}</span>
+              </div>
               {!hasDrawn && !roundOver && (
-                <span className="ml-2 text-primary font-medium">• À vous de jouer</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                  <span className="text-sm text-primary font-semibold">À vous de jouer</span>
+                </div>
               )}
             </div>
-            <Button 
-              onClick={initGame} 
-              variant="outline"
-              aria-label="Commencer une nouvelle manche"
-            >
-              Nouvelle manche
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={initGame} 
+                variant="outline"
+                size="sm"
+                className="hover:bg-primary/10 hover:border-primary/50 transition-all"
+                aria-label="Commencer une nouvelle manche"
+              >
+                🔄 Nouvelle manche
+              </Button>
+            </div>
           </div>
 
           {/* Mode multijoueur - Liste des joueurs */}
@@ -869,16 +883,16 @@ export default function Table() {
                   </div>
                 )}
 
-                {/* Main du Joueur */}
-                <div>
-                  <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">Votre main :</h4>
-                  <HandReorder
-                    hand={player.hand}
-                    selected={selectedCards}
-                    onToggle={handleCardClick}
-                    onReorder={(newHand) => setPlayer(prev => ({ ...prev, hand: newHand }))}
-                  />
-                </div>
+              {/* Main du Joueur */}
+              <div className="mobile-spacing">
+                <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 high-contrast">Votre main :</h4>
+                <HandReorder
+                  hand={player.hand}
+                  selected={selectedCards}
+                  onToggle={handleCardClick}
+                  onReorder={(newHand) => setPlayer(prev => ({ ...prev, hand: newHand }))}
+                />
+              </div>
               </div>
 
               <ComboPreview 
