@@ -153,14 +153,25 @@ export const STORAGE_KEYS = {
 } as const;
 
 // ============= FEATURE FLAGS =============
+// Flags ciblables pour activer/désactiver les fonctionnalités
+export const features = {
+  multiplayer: true,       // Mode multijoueur en ligne
+  ranked: false,           // Mode classé (Premium+)
+  chat: true,              // Chat en jeu
+  cosmetics: true,         // Boutique de cosmétiques
+  ads: true,               // Publicités
+  iap: true,               // Achats in-app
+} as const;
+
+// Alias pour compatibilité avec le code existant
 export const FEATURES = {
-  multiplayer: true,
-  matchmaking: false, // Phase 2
-  chat: false, // Phase 2
-  ranking: false, // Phase 2
-  premium: false, // Phase 3
-  ads: false, // Phase 3
-  notifications: false, // Phase 3
-  achievements: false, // Phase 3
-  tournaments: false, // Phase 4
+  multiplayer: features.multiplayer,
+  matchmaking: false,      // Phase 2
+  chat: features.chat,     // Phase 2
+  ranking: false,          // Phase 2
+  premium: false,          // Phase 3
+  ads: features.ads,       // Phase 3
+  notifications: false,    // Phase 3
+  achievements: false,     // Phase 3
+  tournaments: false,      // Phase 4
 } as const;
