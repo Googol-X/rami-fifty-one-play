@@ -12,6 +12,8 @@ export default function Sandbox() {
   const { state, deck, initLocal, dispatch } = useGame();
   const [meldKind, setMeldKind] = React.useState<MeldKind>('run');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
+  const [handScale, setHandScale] = React.useState(1);
+  const [playersCount, setPlayersCount] = React.useState(2);
 
   React.useEffect(() => {
     if (!state) initLocal([P1, P2]);
@@ -55,53 +57,86 @@ export default function Sandbox() {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <h1 className="text-2xl font-bold">Sandbox Rami 51 (offline)</h1>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <h2 className="font-semibold">État</h2>
-          <div className="text-sm">Phase: <b>{state.phase}</b></div>
-          <div className="text-sm">Actif: <b>{state.activePlayer}</b></div>
-          <div className="text-sm">Défausse (top): <b>{topDiscard ? topDiscard : '—'}</b></div>
-          <div className="text-sm">Melds posés: <b>{state.melds.length}</b></div>
-          {state.winner && <div className="text-green-700 font-semibold">Gagnant: {state.winner}</div>}
-          <pre className="bg-neutral-100 p-2 rounded text-xs max-h-72 overflow-auto">{JSON.stringify(state, null, 2)}</pre>
+    <div className="flex flex-col h-screen">
+      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b p-2 flex flex-wrap items-center gap-2">
+        <button className="px-3 py-1 rounded bg-blue-600 text-white text-sm" onClick={() => doMove({ kind: 'DRAW_FROM_STOCK', playerId: P1.id } as Move)}>Piocher (pioche)</button>
+        <button className="px-3 py-1 rounded bg-blue-600 text-white text-sm" onClick={() => doMove({ kind: 'DRAW_FROM_DISCARD', playerId: P1.id } as Move)}>Piocher (défausse)</button>
+        <button className="px-3 py-1 rounded bg-amber-600 text-white text-sm" onClick={discardOne}>Défausser</button>
+        <button className="px-3 py-1 rounded bg-slate-700 text-white text-sm" onClick={() => doMove({ kind: 'END_TURN', playerId: P1.id } as Move)}>Fin de tour</button>
+        
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1 text-sm">
+            <input type="radio" name="meld" checked={meldKind==='run'} onChange={()=>setMeldKind('run')} />
+            <span>Suite</span>
+          </label>
+          <label className="flex items-center gap-1 text-sm">
+            <input type="radio" name="meld" checked={meldKind==='set'} onChange={()=>setMeldKind('set')} />
+            <span>Brelan</span>
+          </label>
         </div>
 
-        <div className="space-y-2">
-          <h2 className="font-semibold">Actions</h2>
-          <div className="flex flex-wrap gap-2">
-            <button className="px-3 py-1 rounded bg-blue-600 text-white" onClick={() => doMove({ kind: 'DRAW_FROM_STOCK', playerId: P1.id } as Move)}>Piocher (pioche)</button>
-            <button className="px-3 py-1 rounded bg-blue-600 text-white" onClick={() => doMove({ kind: 'DRAW_FROM_DISCARD', playerId: P1.id } as Move)}>Piocher (défausse)</button>
-            <button className="px-3 py-1 rounded bg-amber-600 text-white" onClick={discardOne}>Défausser (1 sélection)</button>
-            <button className="px-3 py-1 rounded bg-slate-700 text-white" onClick={() => doMove({ kind: 'END_TURN', playerId: P1.id } as Move)}>Fin de tour</button>
-          </div>
+        {!me.hasOpened ? (
+          <button className="px-3 py-1 rounded bg-emerald-600 text-white text-sm" onClick={layOpen}>Poser 51</button>
+        ) : (
+          <button className="px-3 py-1 rounded bg-emerald-600 text-white text-sm" onClick={layMeld}>Poser combi</button>
+        )}
 
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-1">
-              <input type="radio" name="meld" checked={meldKind==='run'} onChange={()=>setMeldKind('run')} />
-              <span>Suite (RUN)</span>
-            </label>
-            <label className="flex items-center gap-1">
-              <input type="radio" name="meld" checked={meldKind==='set'} onChange={()=>setMeldKind('set')} />
-              <span>Brelan/Carré (SET)</span>
-            </label>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {!me.hasOpened ? (
-              <button className="px-3 py-1 rounded bg-emerald-600 text-white" onClick={layOpen}>Poser 51 (avec sélection)</button>
-            ) : (
-              <button className="px-3 py-1 rounded bg-emerald-600 text-white" onClick={layMeld}>Poser une combinaison</button>
-            )}
-          </div>
+        <div className="ml-auto flex items-center gap-2">
+          <label className="text-sm">Zoom main</label>
+          <input 
+            type="range" 
+            min={0.8} 
+            max={1.2} 
+            step={0.05} 
+            value={handScale} 
+            onChange={(e)=>setHandScale(parseFloat(e.target.value))}
+            className="w-24"
+          />
+          <label className="text-sm">Joueurs</label>
+          <select 
+            value={playersCount} 
+            onChange={(e)=>{ 
+              const n=Number(e.target.value); 
+              setPlayersCount(n); 
+              initLocal(Array.from({length:n}).map((_,i)=>({id:`p${i+1}`,displayName:i===0?'Toi':`Bot ${i}`}))); 
+            }}
+            className="border rounded px-2 py-1 text-sm"
+          >
+            <option value={2}>2</option>
+            <option value={3}>3</option>
+            <option value={4}>4</option>
+          </select>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <h2 className="font-semibold">Ta main ({me.hand.length} cartes) — clique pour sélectionner</h2>
-        <Hand cards={me.hand} deck={deck} selected={selected} onToggle={toggle} />
+      <div className="flex-1 overflow-auto p-4 space-y-4">
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <h2 className="font-semibold">État</h2>
+            <div className="text-sm">Phase: <b>{state.phase}</b></div>
+            <div className="text-sm">Actif: <b>{state.activePlayer}</b></div>
+            <div className="text-sm">Défausse (top): <b>{topDiscard ? topDiscard : '—'}</b></div>
+            <div className="text-sm">Melds posés: <b>{state.melds.length}</b></div>
+            {state.winner && <div className="text-green-700 font-semibold">Gagnant: {state.winner}</div>}
+            <pre className="bg-neutral-100 p-2 rounded text-xs max-h-72 overflow-auto">{JSON.stringify(state, null, 2)}</pre>
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="font-semibold">Tous les joueurs</h2>
+            {state.players.map((p) => (
+              <div key={p.id} className="text-sm border-l-2 pl-2 border-primary/20">
+                <div className="font-semibold">{p.displayName} {p.id === state.activePlayer && '🎯'}</div>
+                <div>Main: {p.hand.length} cartes</div>
+                <div>Ouvert: {p.hasOpened ? '✅' : '❌'} ({p.laidPoints} pts)</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="font-semibold">Ta main ({me.hand.length} cartes) — clique pour sélectionner</h2>
+          <Hand cards={me.hand} deck={deck} selected={selected} onToggle={toggle} size="sm" scale={handScale} />
+        </div>
       </div>
     </div>
   );
