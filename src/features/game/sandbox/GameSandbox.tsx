@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { applyMove } from '@/features/game/engine';
 import type { TableState, Move, Card as GameCard } from '@/types/game';
 import { useToast } from '@/hooks/use-toast';
+import { analytics } from '@/services/analytics.service';
 
 /**
  * Crée un deck complet de cartes pour les tests
@@ -45,12 +46,29 @@ export function GameSandbox() {
       const newState = applyMove(state, move, deck);
       setState(newState);
       setError(null);
+      
+      // Track move played
+      analytics.trackMovePlayed(move.kind, state.id, state.players[0].hand.length);
+      
+      // Track open attempt specifically
+      if (move.kind === 'LAY_OPEN') {
+        const player = state.players.find(p => p.id === move.playerId);
+        const success = !player?.hasOpened; // Will succeed if player hasn't opened yet
+        analytics.trackOpenAttempt(player?.laidPoints || 0, success, state.id);
+      }
+      
       toast({
         title: "✓ Move appliqué",
         description: `${move.kind}`,
       });
     } catch (e: any) {
       setError(e.message);
+      
+      // Track failed open attempt
+      if (move.kind === 'LAY_OPEN') {
+        analytics.trackOpenAttempt(0, false, state?.id || 'sandbox');
+      }
+      
       toast({
         title: "Erreur",
         description: e.message,

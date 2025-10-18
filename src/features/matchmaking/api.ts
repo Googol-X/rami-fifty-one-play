@@ -5,6 +5,7 @@
  */
 
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { analytics } from '@/services/analytics.service';
 
 export interface MatchRequest {
   userId: string;
@@ -57,6 +58,9 @@ export async function requestMatch(req: MatchRequest): Promise<MatchFound> {
       }, { merge: true });
       
       console.log('[Matchmaking] Match found:', { roomId, seats: limitedSeats });
+      
+      // Track match joined
+      analytics.trackMatchJoined(roomId);
       
       return { 
         roomId, 

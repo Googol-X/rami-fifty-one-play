@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { analytics } from '@/services/analytics.service';
 
 /**
  * MATCHMAKING PANEL - Recherche automatique d'adversaires
@@ -21,8 +22,12 @@ export const MatchmakingPanel = ({ onCancel }: MatchmakingPanelProps) => {
   // TODO: Implémenter logique matchmaking
   const isSearching = false;
 
-  const startMatchmaking = () => {
+  const startMatchmaking = (mode: 'casual' | 'ranked' = 'casual') => {
     console.log('[MATCHMAKING] Start searching - À implémenter');
+    
+    // Track match request
+    analytics.trackMatchRequest(mode);
+    
     // TODO: Rejoindre file d'attente
     // TODO: WebSocket pour mise à jour temps réel
     // TODO: Créer partie quand adversaire trouvé
@@ -50,7 +55,7 @@ export const MatchmakingPanel = ({ onCancel }: MatchmakingPanelProps) => {
         <div className="space-y-3">
           <Button 
             className="w-full" 
-            onClick={startMatchmaking}
+            onClick={() => startMatchmaking('ranked')}
             disabled
           >
             🏆 Partie Classée
@@ -58,6 +63,7 @@ export const MatchmakingPanel = ({ onCancel }: MatchmakingPanelProps) => {
           <Button 
             className="w-full" 
             variant="secondary"
+            onClick={() => startMatchmaking('casual')}
             disabled
           >
             ⚡ Partie Rapide
@@ -65,6 +71,7 @@ export const MatchmakingPanel = ({ onCancel }: MatchmakingPanelProps) => {
           <Button 
             className="w-full" 
             variant="outline"
+            onClick={() => startMatchmaking('casual')}
             disabled
           >
             🎲 Partie Amicale
