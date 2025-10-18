@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PremiumProvider } from "@/contexts/PremiumContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { GameProvider } from "@/contexts/GameContext";
 import { features } from "@/config/app.config";
 import Home from "./pages/Home";
 import Table from "./pages/Table";
@@ -14,6 +15,7 @@ import Auth from "./pages/Auth";
 import Lobby from "./pages/Lobby";
 import NotFound from "./pages/NotFound";
 import { GameSandbox } from "./features/game/sandbox/GameSandbox";
+import Sandbox from "./features/game/sandbox/Sandbox";
 
 const queryClient = new QueryClient();
 
@@ -22,23 +24,26 @@ const App = () => (
     <ThemeProvider>
       <PremiumProvider>
         <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/lobby" element={<Lobby />} />
-                <Route path="/table" element={<Table />} />
-                <Route path="/regles" element={<Regles />} />
-                {/* Sandbox accessible uniquement si feature flag activé */}
-                {features.gameSandbox && <Route path="/sandbox" element={<GameSandbox />} />}
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+          <GameProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/lobby" element={<Lobby />} />
+                  <Route path="/table" element={<Table />} />
+                  <Route path="/regles" element={<Regles />} />
+                  <Route path="/sandbox" element={<Sandbox />} />
+                  {/* Ancien sandbox accessible uniquement si feature flag activé */}
+                  {features.gameSandbox && <Route path="/old-sandbox" element={<GameSandbox />} />}
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </GameProvider>
         </NotificationProvider>
       </PremiumProvider>
     </ThemeProvider>
