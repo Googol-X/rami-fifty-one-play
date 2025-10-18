@@ -161,6 +161,7 @@ export const features = {
   cosmetics: true,         // Boutique de cosmétiques
   ads: true,               // Publicités
   iap: true,               // Achats in-app
+  gameSandbox: false,      // Sandbox pour tester le nouveau moteur (dev only)
 } as const;
 
 // Alias pour compatibilité avec le code existant
