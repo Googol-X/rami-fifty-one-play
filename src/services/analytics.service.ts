@@ -11,6 +11,7 @@
  */
 
 import { ANALYTICS_CONFIG } from '@/config/app.config';
+import { Events, type EventName, type BaseEventProperties } from './analytics.events';
 
 class AnalyticsService {
   private isEnabled: boolean;
@@ -29,42 +30,87 @@ class AnalyticsService {
     // TODO: Init Firebase/GA
   }
 
-  // Tracker un événement
-  trackEvent(eventName: string, properties?: Record<string, any>) {
+  // Tracker un événement normalisé
+  trackEvent(eventName: EventName | string, properties?: Record<string, any>) {
     if (!this.isEnabled) return;
-    console.log('[ANALYTICS] Event:', eventName, properties);
+    
+    const enrichedProperties = {
+      ...properties,
+      timestamp: properties?.timestamp || Date.now(),
+      platform: properties?.platform || 'web',
+    };
+    
+    console.log('[ANALYTICS] Event:', eventName, enrichedProperties);
     // TODO: Send to analytics provider
   }
 
-  // Événements de jeu
-  trackGameStart(mode: string) {
-    this.trackEvent('game_start', { mode });
+  // ========== MATCHMAKING ==========
+  trackMatchRequest(mode: 'casual' | 'ranked', rating?: number) {
+    this.trackEvent(Events.MATCH_REQUEST, { mode, rating });
   }
 
-  trackGameEnd(winner: string, duration: number) {
-    this.trackEvent('game_end', { winner, duration });
+  trackMatchJoined(gameId: string) {
+    this.trackEvent(Events.MATCH_JOINED, { gameId });
   }
 
-  trackMeldPlayed(meldType: string, points: number) {
-    this.trackEvent('meld_played', { meldType, points });
+  // ========== GAMEPLAY ==========
+  trackMovePlayed(moveType: string, gameId: string, turnNumber: number) {
+    this.trackEvent(Events.MOVE_PLAYED, { moveType, gameId, turnNumber });
   }
 
-  // Événements premium
-  trackPurchaseAttempt(product: string) {
-    this.trackEvent('purchase_attempt', { product });
+  trackOpenAttempt(points: number, success: boolean, gameId: string) {
+    this.trackEvent(Events.OPEN_ATTEMPT, { points, success, gameId });
   }
 
-  trackPurchaseComplete(product: string, amount: number) {
-    this.trackEvent('purchase_complete', { product, amount });
+  trackMeldLaid(meldType: string, points: number, gameId: string) {
+    this.trackEvent(Events.MELD_LAID, { meldType, points, gameId });
   }
 
-  // Événements sociaux
-  trackInviteSent(gameId: string) {
-    this.trackEvent('invite_sent', { gameId });
+  trackGameWon(gameId: string, duration: number, finalScore: number) {
+    this.trackEvent(Events.GAME_WON, { gameId, duration, finalScore });
   }
 
-  trackMessageSent() {
-    this.trackEvent('message_sent');
+  trackGameLost(gameId: string, duration: number, finalScore: number) {
+    this.trackEvent(Events.GAME_LOST, { gameId, duration, finalScore });
+  }
+
+  // ========== MONÉTISATION ==========
+  trackPurchaseStart(productId: string) {
+    this.trackEvent(Events.PURCHASE_START, { productId });
+  }
+
+  trackPurchaseSuccess(productId: string, price: number, currency: string) {
+    this.trackEvent(Events.PURCHASE_SUCCESS, { productId, price, currency });
+  }
+
+  trackPurchaseCancelled(productId: string) {
+    this.trackEvent(Events.PURCHASE_CANCELLED, { productId });
+  }
+
+  trackAdViewed(adType: string, placement: string) {
+    this.trackEvent(Events.AD_VIEWED, { adType, placement });
+  }
+
+  // ========== ENGAGEMENT ==========
+  trackSessionStart(sessionId: string) {
+    this.trackEvent(Events.SESSION_START, { sessionId });
+  }
+
+  trackSessionEnd(sessionId: string, duration: number) {
+    this.trackEvent(Events.SESSION_END, { sessionId, duration });
+  }
+
+  trackTutorialComplete() {
+    this.trackEvent(Events.TUTORIAL_COMPLETE);
+  }
+
+  // ========== SOCIAL ==========
+  trackFriendInviteSent(inviteId: string) {
+    this.trackEvent(Events.FRIEND_INVITE_SENT, { inviteId });
+  }
+
+  trackChatMessageSent(gameId: string) {
+    this.trackEvent(Events.CHAT_MESSAGE_SENT, { gameId });
   }
 
   // User properties
