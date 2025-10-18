@@ -134,6 +134,19 @@ export default function Sandbox() {
         </div>
 
         <div className="space-y-2">
+          <h2 className="font-semibold">Adversaires</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {state.players.filter(p=>p.id!==me.id).map(p=>(
+              <div key={p.id} className={`border rounded p-2 ${state.activePlayer===p.id?'ring-2 ring-blue-400':''}`}>
+                <div className="font-semibold">{p.displayName}</div>
+                <div className="text-sm text-gray-500">Cartes: {p.hand.length}</div>
+                <div className="text-xs text-gray-400">Main cachée</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
           <h2 className="font-semibold">Ta main ({me.hand.length} cartes) — clique pour sélectionner</h2>
           <Hand cards={me.hand} deck={deck} selected={selected} onToggle={toggle} size="sm" scale={handScale} />
         </div>
