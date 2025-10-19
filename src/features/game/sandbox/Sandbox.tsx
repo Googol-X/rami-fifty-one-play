@@ -147,6 +147,18 @@ export default function Sandbox() {
         </div>
 
         <div className="space-y-2">
+          <h3 className="font-semibold">Melds sur table ({state.melds.length})</h3>
+          <div className="flex flex-wrap gap-2">
+            {state.melds.map(m=>(
+              <div key={m.id} className="border rounded px-2 py-1 text-sm">
+                <span className="mr-2">{m.type.toUpperCase()}</span>
+                {m.cards.map(cid=> <span key={cid} className="inline-block mr-1">{deck[cid]?.joker?'🃏':`${deck[cid]?.rank}${deck[cid]?.suit}`}</span>)}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
           <h2 className="font-semibold">Ta main ({me.hand.length} cartes) — clique pour sélectionner</h2>
           <Hand cards={me.hand} deck={deck} selected={selected} onToggle={toggle} size="sm" scale={handScale} />
         </div>
