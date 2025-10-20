@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Home, Table2, BookOpen, User, Settings } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
 
 interface NavbarProps {
   gameInProgress?: boolean;
@@ -8,6 +10,21 @@ interface NavbarProps {
 
 export function Navbar({ gameInProgress }: NavbarProps) {
   const location = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const homeLink = isAuthenticated ? '/lobby' : '/';
 
   const links = [
     { to: '/', label: 'Accueil', icon: Home },
@@ -19,7 +36,7 @@ export function Navbar({ gameInProgress }: NavbarProps) {
     <nav className="bg-secondary/80 border-b border-border backdrop-blur-md sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link to={homeLink} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <span className="text-2xl">🃏</span>
             <span className="text-xl font-bold text-primary">Rami 51</span>
           </Link>
