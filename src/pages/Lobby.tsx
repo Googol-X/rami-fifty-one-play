@@ -139,6 +139,20 @@ const Lobby = () => {
     setLoading(true);
 
     try {
+      // Vérifier si le joueur est déjà dans la partie
+      const { data: existingPlayer } = await supabase
+        .from('game_players')
+        .select('player_id')
+        .eq('game_id', gameId)
+        .eq('player_id', user.id)
+        .maybeSingle();
+
+      if (existingPlayer) {
+        // Le joueur est déjà dans la partie, juste naviguer
+        navigate(`/table?gameId=${gameId}`);
+        return;
+      }
+
       const { data: players, error: playersError } = await supabase
         .from('game_players')
         .select('player_index')
