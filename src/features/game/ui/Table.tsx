@@ -1,8 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { TableState, Meld } from '@/types/game';
 import { PlayerAvatar } from './PlayerAvatar';
-import { meldPlacementVariants } from './animations';
+import { meldPlacementVariants, confettiVariants, winnerAppearVariants } from './animations';
 import { audioService } from '@/utils/audioService';
 
 interface TableProps {
@@ -35,7 +35,8 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
       variants={meldPlacementVariants}
       initial="hidden"
       animate="visible"
-      className="flex gap-1 p-2 rounded-lg bg-background/50 backdrop-blur-sm border border-primary/20"
+      whileHover={{ scale: 1.05, boxShadow: "0 8px 30px rgba(0,0,0,0.3)" }}
+      className="flex gap-1 p-2 rounded-lg bg-background/50 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-colors"
     >
       {meld.cards.map(cardId => {
         const card = deck[cardId];
@@ -85,7 +86,12 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
           {/* Discard pile indicator */}
           {state.piles.discard.length > 0 && (
             <div className="absolute bottom-2 md:bottom-8 right-2 md:right-8">
-              <div className="relative">
+              <motion.div 
+                className="relative"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.5, ease: "backOut" }}
+              >
                 <div className="w-12 h-16 md:w-16 md:h-22 rounded-lg border-2 border-amber-500 bg-background/90 flex items-center justify-center shadow-lg">
                   <div className="text-center">
                     <div className="text-[10px] md:text-xs text-muted-foreground mb-1">Défausse</div>
@@ -102,29 +108,33 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
                 <motion.div
                   className="absolute -inset-1 rounded-lg border-2 border-amber-500"
                   animate={{
-                    opacity: [0.5, 1, 0.5],
-                    scale: [1, 1.05, 1]
+                    opacity: [0.3, 0.8, 0.3],
+                    scale: [1, 1.1, 1]
                   }}
                   transition={{
-                    duration: 2,
+                    duration: 1.5,
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
                 />
-              </div>
+              </motion.div>
             </div>
           )}
 
           {/* Draw pile indicator */}
           <div className="absolute bottom-2 md:bottom-8 left-2 md:left-8">
-            <div className="w-12 h-16 md:w-16 md:h-22 rounded-lg border-2 border-primary bg-primary/20 flex items-center justify-center shadow-lg">
+            <motion.div 
+              className="w-12 h-16 md:w-16 md:h-22 rounded-lg border-2 border-primary bg-primary/20 flex items-center justify-center shadow-lg"
+              whileHover={{ scale: 1.1, boxShadow: "0 0 20px hsl(var(--primary) / 0.5)" }}
+              transition={{ duration: 0.2 }}
+            >
               <div className="text-center">
                 <div className="text-[10px] md:text-xs text-primary-foreground mb-1">Pioche</div>
                 <div className="text-sm md:text-lg font-bold text-primary-foreground">
                   {state.piles.draw.length}
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -157,44 +167,96 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
       })}
 
       {/* Winner overlay */}
-      {state.winner && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          onAnimationComplete={() => {
-            const winnerPlayer = players.find(p => p.id === state.winner);
-            if (winnerPlayer?.id === currentPlayerId) {
-              audioService.playWin();
-            } else {
-              audioService.playLose();
-            }
-          }}
-          className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50"
-        >
-          <div className="text-center">
-            <motion.div
-              animate={{
-                scale: [1, 1.2, 1],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="text-8xl mb-4"
+      <AnimatePresence>
+        {state.winner && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onAnimationComplete={() => {
+              const winnerPlayer = players.find(p => p.id === state.winner);
+              if (winnerPlayer?.id === currentPlayerId) {
+                audioService.playWin();
+              } else {
+                audioService.playLose();
+              }
+            }}
+            className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md z-50"
+          >
+            {/* Confetti particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  custom={i}
+                  variants={confettiVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="absolute"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: '50%',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    background: `hsl(${Math.random() * 360}, 70%, 60%)`
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Winner content */}
+            <motion.div 
+              variants={winnerAppearVariants}
+              initial="hidden"
+              animate="visible"
+              className="text-center relative z-10"
             >
-              🏆
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 10, -10, 0]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="text-6xl md:text-8xl mb-4 drop-shadow-2xl"
+              >
+                🏆
+              </motion.div>
+              
+              <motion.h2 
+                className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 bg-clip-text text-transparent mb-4"
+                animate={{
+                  textShadow: [
+                    "0 0 20px rgba(234, 179, 8, 0.5)",
+                    "0 0 40px rgba(234, 179, 8, 0.8)",
+                    "0 0 20px rgba(234, 179, 8, 0.5)"
+                  ]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                {players.find(p => p.id === state.winner)?.displayName} gagne !
+              </motion.h2>
+              
+              <motion.p 
+                className="text-lg md:text-2xl text-muted-foreground"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                🎉 Partie terminée 🎉
+              </motion.p>
             </motion.div>
-            <h2 className="text-4xl font-bold text-primary mb-2">
-              {players.find(p => p.id === state.winner)?.displayName} gagne !
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Partie terminée
-            </p>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

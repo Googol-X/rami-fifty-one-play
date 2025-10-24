@@ -25,21 +25,46 @@ export const CardView: React.FC<{
       onClick={onClick}
       variants={cardHoverVariants}
       whileHover="hover"
+      whileTap="tap"
       className={`
         ${sizeClasses[size]}
         relative rounded-lg overflow-hidden
         bg-gradient-to-br from-background to-muted
-        border-2 transition-all duration-200
+        border-2 transition-all duration-300
         ${selected 
-          ? 'border-primary shadow-lg shadow-primary/50 -translate-y-2' 
-          : 'border-border hover:border-primary/50'
+          ? 'border-primary shadow-xl shadow-primary/60 -translate-y-3 scale-105' 
+          : 'border-border hover:border-primary/50 hover:shadow-lg'
         }
-        ${onClick ? 'cursor-pointer' : 'cursor-default'}
+        ${onClick ? 'cursor-pointer active:scale-95' : 'cursor-default'}
       `}
       title={`${card.rank}${card.joker ? ' (Joker)' : card.suit}`}
     >
       {/* Card shine effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent"
+        initial={{ opacity: 0 }}
+        whileHover={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      />
+      
+      {/* Shimmer effect when selected */}
+      {selected && (
+        <motion.div
+          className="absolute inset-0 opacity-30"
+          style={{
+            background: 'linear-gradient(90deg, transparent, hsl(var(--primary) / 0.5), transparent)',
+            backgroundSize: '200% 100%'
+          }}
+          animate={{
+            backgroundPosition: ['200% 0', '-200% 0']
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+      )}
       
       {/* Card content */}
       <div className="relative w-full h-full flex flex-col items-center justify-center p-2">
