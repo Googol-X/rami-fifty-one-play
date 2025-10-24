@@ -55,7 +55,7 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
   );
 
   return (
-    <div className="relative w-full h-full min-h-[600px] bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-900">
+    <div className="relative w-full h-full min-h-[400px] md:min-h-[600px] bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-900">
       {/* Table felt effect */}
       <div className="absolute inset-0 opacity-10" style={{
         backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
@@ -63,16 +63,16 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
       }} />
 
       {/* Center table area */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative w-[80%] max-w-4xl aspect-[16/10] rounded-[40%] bg-gradient-to-br from-emerald-700 to-emerald-800 border-8 border-amber-900/50 shadow-2xl">
+      <div className="absolute inset-0 flex items-center justify-center px-2 md:px-0">
+        <div className="relative w-[95%] md:w-[80%] max-w-4xl aspect-[16/10] rounded-[40%] bg-gradient-to-br from-emerald-700 to-emerald-800 border-4 md:border-8 border-amber-900/50 shadow-2xl">
           {/* Inner table glow */}
-          <div className="absolute inset-4 rounded-[35%] bg-gradient-to-br from-emerald-600/30 to-transparent" />
+          <div className="absolute inset-2 md:inset-4 rounded-[35%] bg-gradient-to-br from-emerald-600/30 to-transparent" />
           
           {/* Melds display in center */}
-          <div className="absolute inset-0 flex items-center justify-center p-8">
-            <div className="flex flex-wrap gap-3 justify-center items-center max-h-full overflow-y-auto">
+          <div className="absolute inset-0 flex items-center justify-center p-2 md:p-8">
+            <div className="flex flex-wrap gap-2 md:gap-3 justify-center items-center max-h-full overflow-y-auto">
               {state.melds.length === 0 ? (
-                <div className="text-emerald-200/50 text-lg font-semibold">
+                <div className="text-emerald-200/50 text-sm md:text-lg font-semibold">
                   Aucune combinaison posée
                 </div>
               ) : (
@@ -83,11 +83,11 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
 
           {/* Discard pile indicator */}
           {state.piles.discard.length > 0 && (
-            <div className="absolute bottom-8 right-8">
+            <div className="absolute bottom-2 md:bottom-8 right-2 md:right-8">
               <div className="relative">
-                <div className="w-16 h-22 rounded-lg border-2 border-amber-500 bg-background/90 flex items-center justify-center shadow-lg">
+                <div className="w-12 h-16 md:w-16 md:h-22 rounded-lg border-2 border-amber-500 bg-background/90 flex items-center justify-center shadow-lg">
                   <div className="text-center">
-                    <div className="text-xs text-muted-foreground mb-1">Défausse</div>
+                    <div className="text-[10px] md:text-xs text-muted-foreground mb-1">Défausse</div>
                     {deck[state.piles.discard[state.piles.discard.length - 1]] && (
                       <div className="text-sm font-bold">
                         {deck[state.piles.discard[state.piles.discard.length - 1]].joker 
@@ -115,11 +115,11 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
           )}
 
           {/* Draw pile indicator */}
-          <div className="absolute bottom-8 left-8">
-            <div className="w-16 h-22 rounded-lg border-2 border-primary bg-primary/20 flex items-center justify-center shadow-lg">
+          <div className="absolute bottom-2 md:bottom-8 left-2 md:left-8">
+            <div className="w-12 h-16 md:w-16 md:h-22 rounded-lg border-2 border-primary bg-primary/20 flex items-center justify-center shadow-lg">
               <div className="text-center">
-                <div className="text-xs text-primary-foreground mb-1">Pioche</div>
-                <div className="text-lg font-bold text-primary-foreground">
+                <div className="text-[10px] md:text-xs text-primary-foreground mb-1">Pioche</div>
+                <div className="text-sm md:text-lg font-bold text-primary-foreground">
                   {state.piles.draw.length}
                 </div>
               </div>

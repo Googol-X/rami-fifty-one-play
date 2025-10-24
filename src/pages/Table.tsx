@@ -145,9 +145,9 @@ function TableContent() {
       </div>
 
       {/* Player's hand - sticky at bottom above action bar */}
-      <div className="fixed bottom-24 left-0 right-0 z-30 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-4">
-        <div className="container mx-auto px-4">
-          <h3 className="text-sm font-semibold text-muted-foreground mb-2">
+      <div className="fixed bottom-16 md:bottom-24 left-0 right-0 z-30 bg-gradient-to-t from-background via-background to-transparent pt-2 md:pt-6 pb-2 md:pb-4">
+        <div className="container mx-auto px-2 md:px-4">
+          <h3 className="text-xs md:text-sm font-semibold text-muted-foreground mb-1 md:mb-2">
             Ta main ({me.hand.length} cartes)
           </h3>
           <Hand 
