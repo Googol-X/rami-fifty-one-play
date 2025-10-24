@@ -384,7 +384,11 @@ function TableContent() {
             cards={me.hand} 
             deck={deck} 
             selected={selectedCards} 
-            onToggle={toggleCard} 
+            onToggle={toggleCard}
+            onReorder={(newCards) => {
+              // Visual reorder only - cards remain functionally the same
+              console.log('Cards reordered:', newCards);
+            }}
             size="md" 
           />
         </div>

@@ -364,7 +364,11 @@ export default function Sandbox() {
             cards={me.hand} 
             deck={deck} 
             selected={selected} 
-            onToggle={toggle} 
+            onToggle={toggle}
+            onReorder={(newCards) => {
+              // TODO: Implement hand reordering in game state
+              console.log('Reorder:', newCards);
+            }}
             size="md" 
             scale={handScale} 
           />
