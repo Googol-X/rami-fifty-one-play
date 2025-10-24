@@ -4,8 +4,9 @@ import type { Card } from "@/types/game";
 import { CardView } from './CardView';
 import { cardDealVariants } from './animations';
 import { audioService } from '@/utils/audioService';
-import { GripVertical } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 export const Hand: React.FC<{
   cards: string[];
@@ -18,11 +19,26 @@ export const Hand: React.FC<{
 }> = ({ cards, deck, selected, onToggle, onReorder, size='md', scale=1 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropTarget, setDropTarget] = useState<number | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = (id: string) => {
     audioService.playClick();
     onToggle(id);
+  };
+
+  // Move card left or right
+  const moveCard = (fromIndex: number, direction: 'left' | 'right') => {
+    if (!onReorder) return;
+    
+    const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= cards.length) return;
+    
+    const newCards = [...cards];
+    const [moved] = newCards.splice(fromIndex, 1);
+    newCards.splice(toIndex, 0, moved);
+    onReorder(newCards);
+    audioService.playClick();
   };
 
   // Drag & drop handlers
@@ -100,9 +116,9 @@ export const Hand: React.FC<{
   return (
     <div className="w-full overflow-x-auto pb-4">
       {onReorder && (
-        <div className="flex items-center justify-center gap-2 mb-2 text-xs text-muted-foreground">
+        <div className="flex items-center justify-center gap-2 mb-3 text-xs text-muted-foreground bg-background/50 rounded-lg p-2">
           <GripVertical className="w-3 h-3" />
-          <span>Glissez-déposez pour réorganiser vos cartes</span>
+          <span className="font-medium">Utilisez les flèches ← → ou glissez-déposez pour réorganiser</span>
           <GripVertical className="w-3 h-3" />
         </div>
       )}
@@ -123,11 +139,13 @@ export const Hand: React.FC<{
             onTouchStart={(e) => handleTouchStart(e, index)}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
             title={onReorder ? "Glissez pour déplacer cette carte" : undefined}
             className={cn(
               "relative transition-all duration-200 group",
-              onReorder && "cursor-grab active:cursor-grabbing hover:scale-105 hover:z-10",
-              dragIndex === index && "opacity-30 scale-90 cursor-grabbing",
+              onReorder && "cursor-grab active:cursor-grabbing",
+              dragIndex === index && "opacity-30 scale-90 cursor-grabbing z-50",
               dropTarget === index && dragIndex !== index && "ml-6 scale-105"
             )}
           >
@@ -136,22 +154,53 @@ export const Hand: React.FC<{
               variants={cardDealVariants}
               initial="hidden"
               animate="visible"
+              className="relative"
             >
-              {/* Drag indicator - always visible on hover when reorder is enabled */}
-              {onReorder && dragIndex !== index && (
-                <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="bg-background/90 rounded-full p-1 border border-border shadow-lg">
+              {/* Move buttons - visible on hover */}
+              {onReorder && hoveredIndex === index && dragIndex === null && (
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-7 w-7 p-0 rounded-full shadow-lg"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      moveCard(index, 'left');
+                    }}
+                    disabled={index === 0}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-7 w-7 p-0 rounded-full shadow-lg"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      moveCard(index, 'right');
+                    }}
+                    disabled={index === cards.length - 1}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              
+              {/* Drag indicator */}
+              {onReorder && hoveredIndex === index && dragIndex === null && (
+                <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-20">
+                  <div className="bg-background/90 rounded-full p-1 border-2 border-primary shadow-lg animate-pulse">
                     <GripVertical className="w-3 h-3 text-primary" />
                   </div>
                 </div>
               )}
               
-              {/* Drop indicator with animation */}
+              {/* Drop indicator */}
               {dropTarget === index && dragIndex !== index && (
                 <motion.div 
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: 1 }}
-                  className="absolute -left-2 top-0 bottom-0 w-1 bg-primary rounded-full shadow-lg shadow-primary/50"
+                  className="absolute -left-2 top-0 bottom-0 w-1.5 bg-primary rounded-full shadow-lg shadow-primary/50"
                 />
               )}
               
