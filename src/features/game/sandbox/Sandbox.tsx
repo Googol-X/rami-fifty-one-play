@@ -94,9 +94,9 @@ export default function Sandbox() {
     botAI.setDifficulty(botDifficulty);
   }, [botDifficulty]);
 
-  // Tour du bot automatique
+  // Bot AI automatic turn
   React.useEffect(() => {
-    if (!state || state.activePlayer !== P2.id || isBotThinking) return;
+    if (!state || state.activePlayer !== P2.id || isBotThinking || showRoundScore || showGameOver) return;
     
     const bot = state.players.find(p => p.id === P2.id);
     if (!bot) return;
@@ -104,12 +104,11 @@ export default function Sandbox() {
     const executeBot = async () => {
       setIsBotThinking(true);
       
-      // Délai pour simuler la réflexion
       const thinkingDelay = botDifficulty === 'easy' ? 500 : botDifficulty === 'medium' ? 800 : 1200;
       await new Promise(resolve => setTimeout(resolve, thinkingDelay));
 
       try {
-        // Phase 1: Piocher
+        // Phase 1: Draw
         if (state.phase === 'draw') {
           const topDiscard = state.piles.discard[state.piles.discard.length - 1];
           const discardCard = topDiscard ? deck[topDiscard] : null;
@@ -128,16 +127,16 @@ export default function Sandbox() {
           } else {
             dispatch({ kind: 'DRAW_FROM_STOCK', playerId: P2.id });
           }
-          return; // Attendre la prochaine phase
+          
+          await new Promise(resolve => setTimeout(resolve, 400));
         }
 
-        // Phase 2: Jouer (poser des combinaisons)
+        // Phase 2: Play (lay melds)
         if (state.phase === 'play') {
           const botHand = bot.hand.map(id => deck[id]);
           const combos = botAI.findBestCombosToLay(botHand, bot.hasOpened);
 
           if (!bot.hasOpened && combos.length > 0) {
-            // Essayer d'ouvrir avec 51+
             const melds = combos.map(c => ({
               type: c.type,
               cards: c.combo.map(card => card.id)
@@ -147,10 +146,9 @@ export default function Sandbox() {
               dispatch({ kind: 'LAY_OPEN', playerId: P2.id, melds } as Move);
               await new Promise(resolve => setTimeout(resolve, 600));
             } catch {
-              // Si ça échoue, continuer
+              // Continue if it fails
             }
           } else if (bot.hasOpened && combos.length > 0) {
-            // Poser une combinaison supplémentaire
             const bestCombo = combos[0];
             try {
               dispatch({ 
@@ -163,15 +161,12 @@ export default function Sandbox() {
               } as Move);
               await new Promise(resolve => setTimeout(resolve, 600));
             } catch {
-              // Si ça échoue, continuer
+              // Continue if it fails
             }
           }
 
-          // Phase 3: Défausser
-          const currentBot = state.players.find(p => p.id === P2.id);
-          if (!currentBot) return;
-          
-          const currentHand = currentBot.hand.map(id => deck[id]);
+          // Phase 3: Discard
+          const currentHand = state.players.find(p => p.id === P2.id)!.hand.map(id => deck[id]);
           const opponentMelds = state.melds.filter(m => m.owner === P1.id);
           const visibleDiscards = state.piles.discard.slice(-5).map(id => deck[id]);
           
@@ -183,10 +178,10 @@ export default function Sandbox() {
           );
 
           dispatch({ kind: 'DISCARD', playerId: P2.id, cardId: cardToDiscard.id });
-          return; // Attendre la prochaine phase
+          await new Promise(resolve => setTimeout(resolve, 400));
         }
 
-        // Phase 4: Fin de tour
+        // Phase 4: End turn
         if (state.phase === 'discard') {
           dispatch({ kind: 'END_TURN', playerId: P2.id });
         }
@@ -198,7 +193,7 @@ export default function Sandbox() {
     };
 
     executeBot();
-  }, [state, dispatch, deck, botDifficulty, isBotThinking]);
+  }, [state, dispatch, deck, botDifficulty, isBotThinking, showRoundScore, showGameOver, botAI]);
 
   if (!state) return <div className="p-4">Initialisation…</div>;
 
