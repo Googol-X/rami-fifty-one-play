@@ -104,7 +104,7 @@ export default function Sandbox() {
     const executeBot = async () => {
       setIsBotThinking(true);
       
-      // Délai pour simuler la réflexion (plus court en mode facile, plus long en hard)
+      // Délai pour simuler la réflexion
       const thinkingDelay = botDifficulty === 'easy' ? 500 : botDifficulty === 'medium' ? 800 : 1200;
       await new Promise(resolve => setTimeout(resolve, thinkingDelay));
 
@@ -128,8 +128,7 @@ export default function Sandbox() {
           } else {
             dispatch({ kind: 'DRAW_FROM_STOCK', playerId: P2.id });
           }
-          
-          await new Promise(resolve => setTimeout(resolve, 400));
+          return; // Attendre la prochaine phase
         }
 
         // Phase 2: Jouer (poser des combinaisons)
@@ -169,7 +168,10 @@ export default function Sandbox() {
           }
 
           // Phase 3: Défausser
-          const currentHand = state.players.find(p => p.id === P2.id)!.hand.map(id => deck[id]);
+          const currentBot = state.players.find(p => p.id === P2.id);
+          if (!currentBot) return;
+          
+          const currentHand = currentBot.hand.map(id => deck[id]);
           const opponentMelds = state.melds.filter(m => m.owner === P1.id);
           const visibleDiscards = state.piles.discard.slice(-5).map(id => deck[id]);
           
@@ -181,7 +183,7 @@ export default function Sandbox() {
           );
 
           dispatch({ kind: 'DISCARD', playerId: P2.id, cardId: cardToDiscard.id });
-          await new Promise(resolve => setTimeout(resolve, 400));
+          return; // Attendre la prochaine phase
         }
 
         // Phase 4: Fin de tour
