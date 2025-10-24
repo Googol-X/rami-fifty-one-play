@@ -15,6 +15,7 @@ interface GameContextValue {
   deck: Record<string, Card>;
   initLocal(players: { id: string; displayName: string }[]): void;
   dispatch(move: Move): void;
+  reorderHand(playerId: string, newOrder: string[]): void;
 }
 
 const GameContext = React.createContext<GameContextValue | undefined>(undefined);
@@ -71,7 +72,35 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, transport,
     });
   }, [roomId, transport]);
 
-  const value: GameContextValue = { state, deck: deckRef.current, initLocal, dispatch };
+  const reorderHand = React.useCallback((playerId: string, newOrder: string[]) => {
+    setState((prev) => {
+      if (!prev) return prev;
+      
+      const playerIndex = prev.players.findIndex(p => p.id === playerId);
+      if (playerIndex === -1) return prev;
+      
+      const player = prev.players[playerIndex];
+      
+      // Verify all cards are present
+      if (newOrder.length !== player.hand.length) return prev;
+      const hasAllCards = newOrder.every(id => player.hand.includes(id));
+      if (!hasAllCards) return prev;
+      
+      // Create new state with reordered hand
+      const newPlayers = [...prev.players];
+      newPlayers[playerIndex] = {
+        ...player,
+        hand: newOrder
+      };
+      
+      return {
+        ...prev,
+        players: newPlayers
+      };
+    });
+  }, []);
+
+  const value: GameContextValue = { state, deck: deckRef.current, initLocal, dispatch, reorderHand };
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 };
 

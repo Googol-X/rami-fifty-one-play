@@ -21,7 +21,7 @@ type MeldKind = 'set' | 'run';
 const botAI = new AdvancedBotAI('medium');
 
 export default function Sandbox() {
-  const { state, deck, initLocal, dispatch } = useGame();
+  const { state, deck, initLocal, dispatch, reorderHand } = useGame();
   const [meldKind, setMeldKind] = React.useState<MeldKind>('run');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [handScale, setHandScale] = React.useState(1);
@@ -366,8 +366,7 @@ export default function Sandbox() {
             selected={selected} 
             onToggle={toggle}
             onReorder={(newCards) => {
-              // TODO: Implement hand reordering in game state
-              console.log('Reorder:', newCards);
+              reorderHand(P1.id, newCards);
             }}
             size="md" 
             scale={handScale} 

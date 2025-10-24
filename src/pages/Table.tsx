@@ -18,7 +18,7 @@ const P1 = { id: 'p1', displayName: 'Toi' };
 const P2 = { id: 'p2', displayName: 'Bot' };
 
 function TableContent() {
-  const { state, deck, dispatch, initLocal } = useGame();
+  const { state, deck, dispatch, initLocal, reorderHand } = useGame();
   const { toast } = useToast();
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
   const [roundNumber, setRoundNumber] = useState(1);
@@ -386,8 +386,7 @@ function TableContent() {
             selected={selectedCards} 
             onToggle={toggleCard}
             onReorder={(newCards) => {
-              // Visual reorder only - cards remain functionally the same
-              console.log('Cards reordered:', newCards);
+              reorderHand(P1.id, newCards);
             }}
             size="md" 
           />
