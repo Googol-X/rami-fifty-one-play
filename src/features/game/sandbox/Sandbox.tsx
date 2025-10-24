@@ -11,6 +11,7 @@ import { Brain } from 'lucide-react';
 import { RoundScore } from '@/components/RoundScore';
 import { GameOver } from '@/components/GameOver';
 import { RANK_VALUES } from '@/types/game';
+import { useToast } from '@/hooks/use-toast';
 
 const P1 = { id: 'p1', displayName: 'Toi' };
 const P2 = { id: 'p2', displayName: 'Bot' };
@@ -22,6 +23,7 @@ const botAI = new AdvancedBotAI('medium');
 
 export default function Sandbox() {
   const { state, deck, initLocal, dispatch, reorderHand } = useGame();
+  const { toast } = useToast();
   const [meldKind, setMeldKind] = React.useState<MeldKind>('run');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [handScale, setHandScale] = React.useState(1);
@@ -209,9 +211,18 @@ export default function Sandbox() {
   };
 
   const doMove = (move: Move) => {
-    dispatch(move);
-    if (move.kind === 'END_TURN') {
-      setRoundNumber(prev => prev + 1);
+    try {
+      dispatch(move);
+      if (move.kind === 'END_TURN') {
+        setRoundNumber(prev => prev + 1);
+      }
+      setSelected(new Set());
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Mouvement invalide',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -241,25 +252,65 @@ export default function Sandbox() {
     });
   };
 
+  const handleDrawStock = () => {
+    if (!isMyTurn) {
+      toast({
+        title: 'Ce n\'est pas votre tour',
+        variant: 'destructive',
+      });
+      return;
+    }
+    doMove({ kind: 'DRAW_FROM_STOCK', playerId: P1.id });
+  };
+
+  const handleDrawDiscard = () => {
+    if (!isMyTurn) {
+      toast({
+        title: 'Ce n\'est pas votre tour',
+        variant: 'destructive',
+      });
+      return;
+    }
+    doMove({ kind: 'DRAW_FROM_DISCARD', playerId: P1.id });
+  };
+
   const layOpen = () => {
-    if (selected.size < 3) return alert('Sélectionne au moins 3 cartes');
+    if (selected.size < 3) {
+      toast({
+        title: 'Sélection insuffisante',
+        description: 'Sélectionnez au moins 3 cartes',
+        variant: 'destructive',
+      });
+      return;
+    }
     const meld = { type: meldKind, cards: Array.from(selected) } as any;
     doMove({ kind: 'LAY_OPEN', playerId: P1.id, melds: [meld] } as Move);
-    setSelected(new Set());
   };
 
   const layMeld = () => {
-    if (selected.size < 3) return alert('Sélectionne au moins 3 cartes');
+    if (selected.size < 3) {
+      toast({
+        title: 'Sélection insuffisante',
+        description: 'Sélectionnez au moins 3 cartes',
+        variant: 'destructive',
+      });
+      return;
+    }
     const meld = { type: meldKind, cards: Array.from(selected) } as any;
     doMove({ kind: 'LAY_MELD', playerId: P1.id, meld } as Move);
-    setSelected(new Set());
   };
 
   const discardOne = () => {
     const [first] = Array.from(selected);
-    if (!first) return alert('Sélectionne une carte à défausser');
+    if (!first) {
+      toast({
+        title: 'Aucune carte sélectionnée',
+        description: 'Sélectionnez une carte à défausser',
+        variant: 'destructive',
+      });
+      return;
+    }
     doMove({ kind: 'DISCARD', playerId: P1.id, cardId: first } as Move);
-    setSelected(new Set());
   };
 
   return (
@@ -376,8 +427,8 @@ export default function Sandbox() {
 
       {/* Action bar */}
       <ActionBar
-        onDrawStock={() => doMove({ kind: 'DRAW_FROM_STOCK', playerId: P1.id })}
-        onDrawDiscard={() => doMove({ kind: 'DRAW_FROM_DISCARD', playerId: P1.id })}
+        onDrawStock={handleDrawStock}
+        onDrawDiscard={handleDrawDiscard}
         onLayOpen={layOpen}
         onLayMeld={layMeld}
         onDiscard={discardOne}
