@@ -284,6 +284,7 @@ export default function Sandbox() {
             variant={botDifficulty === 'easy' ? 'default' : 'outline'}
             onClick={() => setBotDifficulty('easy')}
             className="text-xs h-7 px-2"
+            disabled={!isMyTurn}
           >
             Facile
           </Button>
@@ -292,6 +293,7 @@ export default function Sandbox() {
             variant={botDifficulty === 'medium' ? 'default' : 'outline'}
             onClick={() => setBotDifficulty('medium')}
             className="text-xs h-7 px-2"
+            disabled={!isMyTurn}
           >
             Moyen
           </Button>
@@ -300,6 +302,7 @@ export default function Sandbox() {
             variant={botDifficulty === 'hard' ? 'default' : 'outline'}
             onClick={() => setBotDifficulty('hard')}
             className="text-xs h-7 px-2"
+            disabled={!isMyTurn}
           >
             Difficile
           </Button>
