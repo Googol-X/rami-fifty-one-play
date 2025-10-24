@@ -8,6 +8,9 @@ import { Scoreboard } from '../ui/Scoreboard';
 import { AdvancedBotAI, BotDifficulty } from '@/utils/advancedBotAI';
 import { Button } from '@/components/ui/button';
 import { Brain } from 'lucide-react';
+import { RoundScore } from '@/components/RoundScore';
+import { GameOver } from '@/components/GameOver';
+import { RANK_VALUES } from '@/types/game';
 
 const P1 = { id: 'p1', displayName: 'Toi' };
 const P2 = { id: 'p2', displayName: 'Bot' };
@@ -26,10 +29,65 @@ export default function Sandbox() {
   const [roundNumber, setRoundNumber] = React.useState(1);
   const [botDifficulty, setBotDifficulty] = React.useState<BotDifficulty>('medium');
   const [isBotThinking, setIsBotThinking] = React.useState(false);
+  
+  // Game score tracking
+  const [playerTotal, setPlayerTotal] = React.useState(0);
+  const [botTotal, setBotTotal] = React.useState(0);
+  const [showRoundScore, setShowRoundScore] = React.useState(false);
+  const [showGameOver, setShowGameOver] = React.useState(false);
+  const [roundWinner, setRoundWinner] = React.useState<'player' | 'bot' | null>(null);
+  const [gameStats, setGameStats] = React.useState({
+    totalRounds: 0,
+    playerWins: 0,
+    botWins: 0,
+    roundStartTimes: [Date.now()] as number[],
+  });
 
   React.useEffect(() => {
     if (!state) initLocal([P1, P2]);
   }, [state, initLocal]);
+
+  // Check for round end (when someone's hand is empty)
+  React.useEffect(() => {
+    if (!state || showRoundScore || showGameOver) return;
+    
+    const player = state.players.find(p => p.id === P1.id);
+    const bot = state.players.find(p => p.id === P2.id);
+    
+    if (player && bot && (player.hand.length === 0 || bot.hand.length === 0)) {
+      const winner = player.hand.length === 0 ? 'player' : 'bot';
+      const loserHand = winner === 'player' ? bot.hand : player.hand;
+      const penalty = loserHand.reduce((sum, cid) => sum + RANK_VALUES[deck[cid].rank], 0);
+      
+      let newPlayerTotal = playerTotal;
+      let newBotTotal = botTotal;
+      
+      if (winner === 'player') {
+        newBotTotal = botTotal + penalty;
+        setBotTotal(newBotTotal);
+      } else {
+        newPlayerTotal = playerTotal + penalty;
+        setPlayerTotal(newPlayerTotal);
+      }
+      
+      // Update game stats
+      setGameStats(prev => ({
+        ...prev,
+        totalRounds: prev.totalRounds + 1,
+        playerWins: winner === 'player' ? prev.playerWins + 1 : prev.playerWins,
+        botWins: winner === 'bot' ? prev.botWins + 1 : prev.botWins,
+      }));
+      
+      setRoundWinner(winner);
+      
+      // Check if game is over (someone reached 101 points)
+      if (newPlayerTotal >= 101 || newBotTotal >= 101) {
+        setShowGameOver(true);
+      } else {
+        setShowRoundScore(true);
+      }
+    }
+  }, [state, playerTotal, botTotal, showRoundScore, showGameOver, deck]);
 
   // Mettre à jour la difficulté du bot
   React.useEffect(() => {
@@ -158,6 +216,32 @@ export default function Sandbox() {
     if (move.kind === 'END_TURN') {
       setRoundNumber(prev => prev + 1);
     }
+  };
+
+  const handleNextRound = () => {
+    initLocal([P1, P2]);
+    setShowRoundScore(false);
+    setRoundWinner(null);
+    setGameStats(prev => ({
+      ...prev,
+      roundStartTimes: [...prev.roundStartTimes, Date.now()],
+    }));
+  };
+
+  const handleNewGame = () => {
+    initLocal([P1, P2]);
+    setShowRoundScore(false);
+    setShowGameOver(false);
+    setRoundWinner(null);
+    setPlayerTotal(0);
+    setBotTotal(0);
+    setRoundNumber(1);
+    setGameStats({
+      totalRounds: 0,
+      playerWins: 0,
+      botWins: 0,
+      roundStartTimes: [Date.now()],
+    });
   };
 
   const layOpen = () => {
@@ -298,6 +382,39 @@ export default function Sandbox() {
         hasOpened={me.hasOpened}
         canAct={isMyTurn}
       />
+
+      {/* Game Over Screen */}
+      {showGameOver && (
+        <GameOver
+          winner={(playerTotal >= 101 ? 'bot' : 'player') as 'player' | 'bot'}
+          stats={{
+            totalRounds: gameStats.totalRounds,
+            playerWins: gameStats.playerWins,
+            botWins: gameStats.botWins,
+            playerFinalScore: playerTotal,
+            botFinalScore: botTotal,
+            averageRoundDuration: gameStats.roundStartTimes.length > 1
+              ? (Date.now() - gameStats.roundStartTimes[0]) / gameStats.totalRounds / 1000
+              : undefined,
+          }}
+          onNewGame={handleNewGame}
+          onBackToMenu={() => window.location.href = '/'}
+        />
+      )}
+
+      {/* Round Score Screen */}
+      {showRoundScore && roundWinner && !showGameOver && (
+        <RoundScore
+          playerHand={state.players.find(p => p.id === P1.id)?.hand.map(cid => deck[cid]) || []}
+          botHand={state.players.find(p => p.id === P2.id)?.hand.map(cid => deck[cid]) || []}
+          winner={roundWinner}
+          onNextRound={handleNextRound}
+          onNewGame={handleNewGame}
+          playerTotal={playerTotal}
+          botTotal={botTotal}
+          isGameOver={false}
+        />
+      )}
     </div>
   );
 }
