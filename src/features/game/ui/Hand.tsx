@@ -99,6 +99,13 @@ export const Hand: React.FC<{
 
   return (
     <div className="w-full overflow-x-auto pb-4">
+      {onReorder && (
+        <div className="flex items-center justify-center gap-2 mb-2 text-xs text-muted-foreground">
+          <GripVertical className="w-3 h-3" />
+          <span>Glissez-déposez pour réorganiser vos cartes</span>
+          <GripVertical className="w-3 h-3" />
+        </div>
+      )}
       <motion.div 
         ref={containerRef}
         className="inline-flex gap-2 px-2"
@@ -116,11 +123,12 @@ export const Hand: React.FC<{
             onTouchStart={(e) => handleTouchStart(e, index)}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            title={onReorder ? "Glissez pour déplacer cette carte" : undefined}
             className={cn(
-              "relative",
-              onReorder && "cursor-move touch-none select-none",
-              dragIndex === index && "opacity-50 scale-95",
-              dropTarget === index && dragIndex !== index && "ml-4"
+              "relative transition-all duration-200 group",
+              onReorder && "cursor-grab active:cursor-grabbing hover:scale-105 hover:z-10",
+              dragIndex === index && "opacity-30 scale-90 cursor-grabbing",
+              dropTarget === index && dragIndex !== index && "ml-6 scale-105"
             )}
           >
             <motion.div
@@ -129,16 +137,22 @@ export const Hand: React.FC<{
               initial="hidden"
               animate="visible"
             >
-              {/* Drag indicator for desktop */}
-              {onReorder && (
-                <div className="absolute -left-2 top-1/2 -translate-y-1/2 z-10 opacity-0 hover:opacity-100 transition-opacity hidden md:block">
-                  <GripVertical className="w-3 h-3 text-muted-foreground" />
+              {/* Drag indicator - always visible on hover when reorder is enabled */}
+              {onReorder && dragIndex !== index && (
+                <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-background/90 rounded-full p-1 border border-border shadow-lg">
+                    <GripVertical className="w-3 h-3 text-primary" />
+                  </div>
                 </div>
               )}
               
-              {/* Drop indicator */}
+              {/* Drop indicator with animation */}
               {dropTarget === index && dragIndex !== index && (
-                <div className="absolute -left-1 top-0 bottom-0 w-0.5 bg-primary rounded-full" />
+                <motion.div 
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  className="absolute -left-2 top-0 bottom-0 w-1 bg-primary rounded-full shadow-lg shadow-primary/50"
+                />
               )}
               
               <CardView 
