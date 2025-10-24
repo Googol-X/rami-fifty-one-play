@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { audioService } from '@/utils/audioService';
 
 interface ActionBarProps {
   onDrawStock: () => void;
@@ -23,6 +24,36 @@ export const ActionBar: React.FC<ActionBarProps> = ({
   hasOpened,
   canAct
 }) => {
+  const handleDrawStock = () => {
+    audioService.playDraw();
+    onDrawStock();
+  };
+
+  const handleDrawDiscard = () => {
+    audioService.playDraw();
+    onDrawDiscard();
+  };
+
+  const handleLayOpen = () => {
+    audioService.playLayMeld();
+    onLayOpen();
+  };
+
+  const handleLayMeld = () => {
+    audioService.playLayMeld();
+    onLayMeld();
+  };
+
+  const handleDiscard = () => {
+    audioService.playDiscard();
+    onDiscard();
+  };
+
+  const handleEndTurn = () => {
+    audioService.playTurnChange();
+    onEndTurn();
+  };
+
   return (
     <motion.div
       initial={{ y: 100, opacity: 0 }}
@@ -33,7 +64,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
         <div className="container mx-auto px-2 md:px-4 py-2 md:py-4">
           <div className="flex flex-wrap justify-center gap-1 md:gap-2">
             <Button
-              onClick={onDrawStock}
+              onClick={handleDrawStock}
               disabled={!canAct}
               variant="default"
               size="sm"
@@ -43,7 +74,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             </Button>
             
             <Button
-              onClick={onDrawDiscard}
+              onClick={handleDrawDiscard}
               disabled={!canAct}
               variant="secondary"
               size="sm"
@@ -54,7 +85,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
 
             {!hasOpened ? (
               <Button
-                onClick={onLayOpen}
+                onClick={handleLayOpen}
                 disabled={!canAct}
                 variant="default"
                 size="sm"
@@ -64,7 +95,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
               </Button>
             ) : (
               <Button
-                onClick={onLayMeld}
+                onClick={handleLayMeld}
                 disabled={!canAct}
                 variant="default"
                 size="sm"
@@ -75,7 +106,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             )}
 
             <Button
-              onClick={onDiscard}
+              onClick={handleDiscard}
               disabled={!canAct}
               variant="destructive"
               size="sm"
@@ -85,7 +116,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             </Button>
 
             <Button
-              onClick={onEndTurn}
+              onClick={handleEndTurn}
               disabled={!canAct}
               variant="outline"
               size="sm"

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import type { TableState, Meld } from '@/types/game';
 import { PlayerAvatar } from './PlayerAvatar';
 import { meldPlacementVariants } from './animations';
+import { audioService } from '@/utils/audioService';
 
 interface TableProps {
   state: TableState;
@@ -160,6 +161,14 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
+          onAnimationComplete={() => {
+            const winnerPlayer = players.find(p => p.id === state.winner);
+            if (winnerPlayer?.id === currentPlayerId) {
+              audioService.playWin();
+            } else {
+              audioService.playLose();
+            }
+          }}
           className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50"
         >
           <div className="text-center">

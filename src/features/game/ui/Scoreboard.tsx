@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Volume2, VolumeX } from 'lucide-react';
+import { audioService } from '@/utils/audioService';
 
 interface ScoreboardProps {
   meldsCount: number;
@@ -16,6 +17,17 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
   roundNumber,
   onQuit
 }) => {
+  const [soundEnabled, setSoundEnabled] = React.useState(audioService.isEnabled());
+
+  const toggleSound = () => {
+    const newState = !soundEnabled;
+    setSoundEnabled(newState);
+    audioService.setEnabled(newState);
+    if (newState) {
+      audioService.playClick();
+    }
+  };
+
   return (
     <motion.div
       initial={{ y: -100, opacity: 0 }}
@@ -51,18 +63,34 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
               </div>
             </div>
 
-            {onQuit && (
+            <div className="flex items-center gap-1 md:gap-2">
               <Button
-                onClick={onQuit}
+                onClick={toggleSound}
                 variant="ghost"
                 size="sm"
-                className="gap-1 md:gap-2 h-7 md:h-9"
+                className="gap-1 h-7 md:h-9"
+                title={soundEnabled ? 'Désactiver les sons' : 'Activer les sons'}
               >
-                <X className="w-3 h-3 md:w-4 md:h-4" />
-                <span className="hidden md:inline">Quitter</span>
-                <span className="md:hidden">✕</span>
+                {soundEnabled ? (
+                  <Volume2 className="w-3 h-3 md:w-4 md:h-4" />
+                ) : (
+                  <VolumeX className="w-3 h-3 md:w-4 md:h-4" />
+                )}
               </Button>
-            )}
+
+              {onQuit && (
+                <Button
+                  onClick={onQuit}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 md:gap-2 h-7 md:h-9"
+                >
+                  <X className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="hidden md:inline">Quitter</span>
+                  <span className="md:hidden">✕</span>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

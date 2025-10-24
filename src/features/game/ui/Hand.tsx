@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import type { Card } from "@/types/game";
 import { CardView } from './CardView';
 import { cardDealVariants } from './animations';
+import { audioService } from '@/utils/audioService';
 
 export const Hand: React.FC<{
   cards: string[];
@@ -12,6 +13,11 @@ export const Hand: React.FC<{
   size?: 'sm'|'md'|'lg';
   scale?: number;
 }> = ({ cards, deck, selected, onToggle, size='md', scale=1 }) => {
+  const handleToggle = (id: string) => {
+    audioService.playClick();
+    onToggle(id);
+  };
+
   return (
     <div className="w-full overflow-x-auto pb-4">
       <motion.div 
@@ -29,7 +35,7 @@ export const Hand: React.FC<{
             <CardView 
               card={deck[id]} 
               selected={selected.has(id)} 
-              onClick={() => onToggle(id)} 
+              onClick={() => handleToggle(id)} 
               size={size} 
             />
           </motion.div>
