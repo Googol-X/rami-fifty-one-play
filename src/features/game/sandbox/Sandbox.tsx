@@ -5,11 +5,17 @@ import { Hand } from '../ui/Hand';
 import { Table } from '../ui/Table';
 import { ActionBar } from '../ui/ActionBar';
 import { Scoreboard } from '../ui/Scoreboard';
+import { AdvancedBotAI, BotDifficulty } from '@/utils/advancedBotAI';
+import { Button } from '@/components/ui/button';
+import { Brain } from 'lucide-react';
 
 const P1 = { id: 'p1', displayName: 'Toi' };
 const P2 = { id: 'p2', displayName: 'Bot' };
 
 type MeldKind = 'set' | 'run';
+
+// Instance de l'IA avancée
+const botAI = new AdvancedBotAI('medium');
 
 export default function Sandbox() {
   const { state, deck, initLocal, dispatch } = useGame();
@@ -18,11 +24,121 @@ export default function Sandbox() {
   const [handScale, setHandScale] = React.useState(1);
   const [playersCount, setPlayersCount] = React.useState(2);
   const [roundNumber, setRoundNumber] = React.useState(1);
+  const [botDifficulty, setBotDifficulty] = React.useState<BotDifficulty>('medium');
+  const [isBotThinking, setIsBotThinking] = React.useState(false);
 
   React.useEffect(() => {
     if (!state) initLocal([P1, P2]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
+  }, [state, initLocal]);
+
+  // Mettre à jour la difficulté du bot
+  React.useEffect(() => {
+    botAI.setDifficulty(botDifficulty);
+  }, [botDifficulty]);
+
+  // Tour du bot automatique
+  React.useEffect(() => {
+    if (!state || state.activePlayer !== P2.id || isBotThinking) return;
+    
+    const bot = state.players.find(p => p.id === P2.id);
+    if (!bot) return;
+
+    const executeBot = async () => {
+      setIsBotThinking(true);
+      
+      // Délai pour simuler la réflexion (plus court en mode facile, plus long en hard)
+      const thinkingDelay = botDifficulty === 'easy' ? 500 : botDifficulty === 'medium' ? 800 : 1200;
+      await new Promise(resolve => setTimeout(resolve, thinkingDelay));
+
+      try {
+        // Phase 1: Piocher
+        if (state.phase === 'draw') {
+          const topDiscard = state.piles.discard[state.piles.discard.length - 1];
+          const discardCard = topDiscard ? deck[topDiscard] : null;
+          const opponentMelds = state.melds.filter(m => m.owner === P1.id);
+          
+          const shouldDrawDiscard = discardCard && botAI.shouldDrawFromDiscard(
+            discardCard,
+            bot.hand.map(id => deck[id]),
+            bot.hasOpened,
+            opponentMelds,
+            deck
+          );
+
+          if (shouldDrawDiscard && state.piles.discard.length > 0) {
+            dispatch({ kind: 'DRAW_FROM_DISCARD', playerId: P2.id });
+          } else {
+            dispatch({ kind: 'DRAW_FROM_STOCK', playerId: P2.id });
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 400));
+        }
+
+        // Phase 2: Jouer (poser des combinaisons)
+        if (state.phase === 'play') {
+          const botHand = bot.hand.map(id => deck[id]);
+          const combos = botAI.findBestCombosToLay(botHand, bot.hasOpened);
+
+          if (!bot.hasOpened && combos.length > 0) {
+            // Essayer d'ouvrir avec 51+
+            const melds = combos.map(c => ({
+              type: c.type,
+              cards: c.combo.map(card => card.id)
+            }));
+            
+            try {
+              dispatch({ kind: 'LAY_OPEN', playerId: P2.id, melds } as Move);
+              await new Promise(resolve => setTimeout(resolve, 600));
+            } catch {
+              // Si ça échoue, continuer
+            }
+          } else if (bot.hasOpened && combos.length > 0) {
+            // Poser une combinaison supplémentaire
+            const bestCombo = combos[0];
+            try {
+              dispatch({ 
+                kind: 'LAY_MELD', 
+                playerId: P2.id, 
+                meld: {
+                  type: bestCombo.type,
+                  cards: bestCombo.combo.map(c => c.id)
+                }
+              } as Move);
+              await new Promise(resolve => setTimeout(resolve, 600));
+            } catch {
+              // Si ça échoue, continuer
+            }
+          }
+
+          // Phase 3: Défausser
+          const currentHand = state.players.find(p => p.id === P2.id)!.hand.map(id => deck[id]);
+          const opponentMelds = state.melds.filter(m => m.owner === P1.id);
+          const visibleDiscards = state.piles.discard.slice(-5).map(id => deck[id]);
+          
+          const cardToDiscard = botAI.selectCardToDiscard(
+            currentHand,
+            opponentMelds,
+            deck,
+            visibleDiscards
+          );
+
+          dispatch({ kind: 'DISCARD', playerId: P2.id, cardId: cardToDiscard.id });
+          await new Promise(resolve => setTimeout(resolve, 400));
+        }
+
+        // Phase 4: Fin de tour
+        if (state.phase === 'discard') {
+          dispatch({ kind: 'END_TURN', playerId: P2.id });
+        }
+      } catch (error) {
+        console.error('Bot error:', error);
+      } finally {
+        setIsBotThinking(false);
+      }
+    };
+
+    executeBot();
+  }, [state, dispatch, deck, botDifficulty, isBotThinking]);
 
   if (!state) return <div className="p-4">Initialisation…</div>;
 
@@ -74,6 +190,40 @@ export default function Sandbox() {
         roundNumber={roundNumber}
         onQuit={() => window.location.href = '/'}
       />
+
+      {/* Bot difficulty selector */}
+      <div className="fixed top-20 right-4 z-30 bg-background/95 backdrop-blur-lg border border-border rounded-lg p-3 shadow-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <Brain className="w-4 h-4 text-primary" />
+          <span className="text-xs font-semibold text-foreground">Difficulté Bot</span>
+        </div>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant={botDifficulty === 'easy' ? 'default' : 'outline'}
+            onClick={() => setBotDifficulty('easy')}
+            className="text-xs h-7 px-2"
+          >
+            Facile
+          </Button>
+          <Button
+            size="sm"
+            variant={botDifficulty === 'medium' ? 'default' : 'outline'}
+            onClick={() => setBotDifficulty('medium')}
+            className="text-xs h-7 px-2"
+          >
+            Moyen
+          </Button>
+          <Button
+            size="sm"
+            variant={botDifficulty === 'hard' ? 'default' : 'outline'}
+            onClick={() => setBotDifficulty('hard')}
+            className="text-xs h-7 px-2"
+          >
+            Difficile
+          </Button>
+        </div>
+      </div>
 
       {/* Main game table */}
       <div className="pt-16 pb-32 h-full">
