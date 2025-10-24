@@ -1,6 +1,8 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import type { Card } from "@/types/game";
 import { CardView } from './CardView';
+import { cardDealVariants } from './animations';
 
 export const Hand: React.FC<{
   cards: string[];
@@ -8,15 +10,31 @@ export const Hand: React.FC<{
   selected: Set<string>;
   onToggle: (id: string) => void;
   size?: 'sm'|'md'|'lg';
-  scale?: number; // 0.8..1.2
+  scale?: number;
 }> = ({ cards, deck, selected, onToggle, size='md', scale=1 }) => {
   return (
-    <div className="overflow-x-auto whitespace-nowrap">
-      <div className="inline-flex gap-2" style={{ ['--card-scale' as any]: scale, transform: 'scale(var(--card-scale))', transformOrigin: 'left center' }}>
-        {cards.map((id) => (
-          <CardView key={id} card={deck[id]} selected={selected.has(id)} onClick={() => onToggle(id)} size={size} />
+    <div className="w-full overflow-x-auto pb-4">
+      <motion.div 
+        className="inline-flex gap-2 px-2"
+        style={{ transform: `scale(${scale})`, transformOrigin: 'left center' }}
+      >
+        {cards.map((id, index) => (
+          <motion.div
+            key={id}
+            custom={index}
+            variants={cardDealVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <CardView 
+              card={deck[id]} 
+              selected={selected.has(id)} 
+              onClick={() => onToggle(id)} 
+              size={size} 
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };
