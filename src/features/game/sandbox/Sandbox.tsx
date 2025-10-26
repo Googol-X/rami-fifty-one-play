@@ -12,9 +12,13 @@ import { OrientationGuard } from '@/components/OrientationGuard';
 import { AdvancedBotAI, BotDifficulty } from '@/utils/advancedBotAI';
 import { RoundScore } from '@/components/RoundScore';
 import { GameOver } from '@/components/GameOver';
+import { AvatarHud } from '@/components/AvatarHud';
+import { DevOverlay } from '@/components/DevOverlay';
 import { RANK_VALUES } from '@/types/game';
 import { useToast } from '@/hooks/use-toast';
 import { LandscapeOnly } from '@/components/LandscapeOnly';
+import { useDevMode } from '@/hooks/useDevMode';
+import { soundManager } from '@/lib/sound';
 
 const P1 = { id: 'p1', displayName: 'Toi' };
 const P2 = { id: 'p2', displayName: 'Bot' };
@@ -37,6 +41,12 @@ export default function Sandbox() {
   const [showBot, setShowBot] = React.useState(true);
   const [botStarted, setBotStarted] = React.useState(false);
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
+  const isDevMode = useDevMode();
+  
+  // Timer state
+  const [playerTimeLeft, setPlayerTimeLeft] = React.useState(30000); // 30s
+  const [botTimeLeft, setBotTimeLeft] = React.useState(30000);
+  const TURN_TIME_TOTAL = 30000; // 30 seconds per turn
   
   // Game score tracking
   const [playerTotal, setPlayerTotal] = React.useState(0);
@@ -67,6 +77,30 @@ export default function Sandbox() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Timer countdown - throttled to 200ms for performance
+  React.useEffect(() => {
+    if (!state || showRoundScore || showGameOver) return;
+    
+    const interval = setInterval(() => {
+      if (state.activePlayer === P1.id) {
+        setPlayerTimeLeft(prev => Math.max(0, prev - 200));
+      } else if (state.activePlayer === P2.id) {
+        setBotTimeLeft(prev => Math.max(0, prev - 200));
+      }
+    }, 200);
+    
+    return () => clearInterval(interval);
+  }, [state?.activePlayer, showRoundScore, showGameOver]);
+
+  // Reset timer on turn change
+  React.useEffect(() => {
+    if (state?.activePlayer === P1.id) {
+      setPlayerTimeLeft(TURN_TIME_TOTAL);
+    } else if (state?.activePlayer === P2.id) {
+      setBotTimeLeft(TURN_TIME_TOTAL);
+    }
+  }, [state?.activePlayer]);
+
   // Check for round end (when someone's hand is empty)
   React.useEffect(() => {
     if (!state || showRoundScore || showGameOver) return;
@@ -78,6 +112,11 @@ export default function Sandbox() {
       const winner = player.hand.length === 0 ? 'player' : 'bot';
       const loserHand = winner === 'player' ? bot.hand : player.hand;
       const penalty = loserHand.reduce((sum, cid) => sum + RANK_VALUES[deck[cid].rank], 0);
+      
+      // Play win sound
+      if (winner === 'player') {
+        soundManager.play('win');
+      }
       
       let newPlayerTotal = playerTotal;
       let newBotTotal = botTotal;
@@ -382,6 +421,57 @@ export default function Sandbox() {
     <LandscapeOnly>
       <OrientationGuard>
         <div className="relative w-full h-screen overflow-hidden bg-background">
+      {/* Avatar HUDs */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40">
+        <AvatarHud
+          name="Bot"
+          isTurn={state?.activePlayer === P2.id}
+          timeLeftMs={botTimeLeft}
+          timeTotalMs={TURN_TIME_TOTAL}
+          score={botTotal}
+          position="top"
+        />
+      </div>
+
+      <div className="fixed bottom-20 left-4 z-40">
+        <AvatarHud
+          name="Toi"
+          isTurn={state?.activePlayer === P1.id}
+          timeLeftMs={playerTimeLeft}
+          timeTotalMs={TURN_TIME_TOTAL}
+          score={playerTotal}
+          position="bottom"
+        />
+      </div>
+
+      {/* Dev Overlay */}
+      {isDevMode && (
+        <DevOverlay
+          onDistributeTest={() => {
+            // Test hand distribution logic
+            console.log('Test hand distribution');
+          }}
+          onForceBotDiscard={() => {
+            if (state?.activePlayer === P2.id) {
+              const bot = state.players.find(p => p.id === P2.id);
+              if (bot && bot.hand.length > 0) {
+                dispatch({ kind: 'DISCARD', playerId: P2.id, cardId: bot.hand[0] });
+              }
+            }
+          }}
+          onToggleDifficulty={() => {
+            const difficulties: BotDifficulty[] = ['easy', 'medium', 'hard'];
+            const currentIndex = difficulties.indexOf(botDifficulty);
+            const nextIndex = (currentIndex + 1) % difficulties.length;
+            setBotDifficulty(difficulties[nextIndex]);
+          }}
+          onResetTimers={() => {
+            setPlayerTimeLeft(TURN_TIME_TOTAL);
+            setBotTimeLeft(TURN_TIME_TOTAL);
+          }}
+        />
+      )}
+
       {/* Scoreboard */}
       <Scoreboard
         meldsCount={state.melds.length}

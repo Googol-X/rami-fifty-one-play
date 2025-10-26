@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { audioService } from '@/utils/audioService';
+import { soundManager } from '@/lib/sound';
 
 interface ActionBarProps {
   onDrawStock: () => void;
@@ -30,31 +31,37 @@ export const ActionBar: React.FC<ActionBarProps> = ({
 }) => {
   const handleDrawStock = () => {
     audioService.playDraw();
+    soundManager.play('pick');
     onDrawStock();
   };
 
   const handleDrawDiscard = () => {
     audioService.playDraw();
+    soundManager.play('pick');
     onDrawDiscard();
   };
 
   const handleLayOpen = () => {
     audioService.playLayMeld();
+    soundManager.play('uiClick');
     onLayOpen();
   };
 
   const handleLayMeld = () => {
     audioService.playLayMeld();
+    soundManager.play('uiClick');
     onLayMeld();
   };
 
   const handleDiscard = () => {
     audioService.playDiscard();
+    soundManager.play('discard');
     onDiscard();
   };
 
   const handleEndTurn = () => {
     audioService.playTurnChange();
+    soundManager.play('uiClick');
     onEndTurn();
   };
 
