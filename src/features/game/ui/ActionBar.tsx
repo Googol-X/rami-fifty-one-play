@@ -59,18 +59,14 @@ export const ActionBar: React.FC<ActionBarProps> = ({
   };
 
   return (
-    <motion.div
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="action-bar"
-    >
-      <div className="flex flex-wrap justify-center items-center gap-1.5 md:gap-3">
+    <div className="action-bar">
+      <div className="flex flex-wrap justify-center items-center gap-2">
             <Button
               onClick={handleDrawStock}
               disabled={!canAct}
               variant="default"
               size="sm"
-              className="gap-1 text-xs md:text-sm font-bold min-w-[70px] md:min-w-[110px] h-8 md:h-11 shadow-lg hover:shadow-primary/30 transition-all"
+              className="h-9 px-3 text-sm font-bold shadow-lg hover:shadow-primary/30 transition-all"
             >
               🎴 <span className="hidden sm:inline">Piocher</span><span className="sm:hidden">Pioche</span>
             </Button>
@@ -80,7 +76,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
               disabled={!canAct || !topDiscard}
               variant="secondary"
               size="sm"
-              className="gap-1 text-xs md:text-sm font-bold min-w-[70px] md:min-w-[110px] h-8 md:h-11 shadow-lg hover:shadow-accent/20 transition-all"
+              className="h-9 px-3 text-sm font-bold shadow-lg hover:shadow-accent/20 transition-all"
             >
               {topDiscard && deck ? (
                 deck[topDiscard].joker ? '🃏' : `${deck[topDiscard].rank}${deck[topDiscard].suit}`
@@ -95,7 +91,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                 disabled={!canAct}
                 variant="default"
                 size="sm"
-                className="gap-1 text-xs md:text-sm font-bold bg-gradient-to-r from-primary via-primary to-primary/90 min-w-[70px] md:min-w-[110px] h-8 md:h-11 shadow-lg shadow-primary/40 hover:shadow-primary/60 transition-all"
+                className="h-9 px-3 text-sm font-bold bg-gradient-to-r from-primary via-primary to-primary/90 shadow-lg shadow-primary/40 hover:shadow-primary/60 transition-all"
               >
                 ✨ <span className="hidden sm:inline">Poser 51</span><span className="sm:hidden">51</span>
               </Button>
@@ -105,7 +101,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
                 disabled={!canAct}
                 variant="default"
                 size="sm"
-                className="gap-1 text-xs md:text-sm font-bold min-w-[70px] md:min-w-[110px] h-8 md:h-11 shadow-lg hover:shadow-primary/30 transition-all"
+                className="h-9 px-3 text-sm font-bold shadow-lg hover:shadow-primary/30 transition-all"
               >
                 🃏 <span className="hidden sm:inline">Poser</span><span className="sm:hidden">Poser</span>
               </Button>
@@ -116,7 +112,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
               disabled={!canAct}
               variant="destructive"
               size="sm"
-              className="gap-1 text-xs md:text-sm font-bold min-w-[70px] md:min-w-[110px] h-8 md:h-11 shadow-lg hover:shadow-destructive/30 transition-all"
+              className="h-9 px-3 text-sm font-bold shadow-lg hover:shadow-destructive/30 transition-all"
             >
               🗑️ <span className="hidden sm:inline">Défausser</span><span className="sm:hidden">Déf.</span>
             </Button>
@@ -126,11 +122,11 @@ export const ActionBar: React.FC<ActionBarProps> = ({
               disabled={!canAct}
               variant="outline"
               size="sm"
-              className="gap-1 text-xs md:text-sm font-bold border-2 min-w-[70px] md:min-w-[110px] h-8 md:h-11 shadow-lg hover:bg-primary/10 hover:border-primary transition-all"
+              className="h-9 px-3 text-sm font-bold border-2 shadow-lg hover:bg-primary/10 hover:border-primary transition-all"
             >
               ⏭️ <span className="hidden sm:inline">Fin tour</span><span className="sm:hidden">Fin</span>
             </Button>
       </div>
-    </motion.div>
+    </div>
   );
 };
