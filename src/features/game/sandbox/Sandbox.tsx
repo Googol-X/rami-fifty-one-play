@@ -502,8 +502,12 @@ export default function Sandbox() {
                 onReorder={(newCards) => {
                   reorderHand(P1.id, newCards);
                 }}
+                radius={320}
+                spread={72}
+                tilt={-8}
+                overlap={46}
+                scale={handScale}
                 size="md" 
-                scale={handScale} 
               />
             </div>
           </div>

@@ -388,6 +388,11 @@ function TableContent() {
             onReorder={(newCards) => {
               reorderHand(P1.id, newCards);
             }}
+            radius={320}
+            spread={72}
+            tilt={-8}
+            overlap={46}
+            scale={0.9}
             size="md" 
           />
         </div>
