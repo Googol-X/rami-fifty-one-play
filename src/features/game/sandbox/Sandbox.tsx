@@ -55,6 +55,11 @@ export default function Sandbox() {
     if (!state) initLocal([P1, P2]);
   }, [state, initLocal]);
 
+  // Reset bot panel when game state changes
+  React.useEffect(() => {
+    setShowBotPanel(true);
+  }, [state?.id]);
+
   // Responsive window width tracking
   React.useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -112,9 +117,9 @@ export default function Sandbox() {
   }, [botDifficulty, botStarted]);
   
   const onDifficultySelected = (level: BotDifficulty) => {
-    setBotDifficulty(level);
     setShowBotPanel(false);
-    setBotStarted(true);
+    setBotDifficulty(level);
+    setBotStarted(true); // bot: draw -> try meld -> discard
   };
 
   // Bot AI automatic turn
