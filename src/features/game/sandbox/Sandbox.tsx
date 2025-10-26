@@ -14,11 +14,19 @@ import { RoundScore } from '@/components/RoundScore';
 import { GameOver } from '@/components/GameOver';
 import { AvatarHud } from '@/components/AvatarHud';
 import { DevOverlay } from '@/components/DevOverlay';
+import { EmoteBar } from '@/components/EmoteBar';
+import { SettingsPanel } from '@/components/SettingsPanel';
+import { TutorialCoach } from '@/components/TutorialCoach';
 import { RANK_VALUES } from '@/types/game';
 import { useToast } from '@/hooks/use-toast';
 import { LandscapeOnly } from '@/components/LandscapeOnly';
 import { useDevMode } from '@/hooks/useDevMode';
 import { soundManager } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
+import { emoteManager } from '@/lib/emotes';
+import { tutorialManager } from '@/lib/tutorial';
+import { confettiLight, glowSweep } from '@/lib/visualFx';
+import { EmoteType } from '@/lib/matchTypes';
 
 const P1 = { id: 'p1', displayName: 'Toi' };
 const P2 = { id: 'p2', displayName: 'Bot' };
@@ -43,6 +51,10 @@ export default function Sandbox() {
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
   const isDevMode = useDevMode();
   
+  // UI state
+  const [showSettings, setShowSettings] = React.useState(false);
+  const [showTutorial, setShowTutorial] = React.useState(false);
+  
   // Timer state
   const [playerTimeLeft, setPlayerTimeLeft] = React.useState(30000); // 30s
   const [botTimeLeft, setBotTimeLeft] = React.useState(30000);
@@ -60,6 +72,16 @@ export default function Sandbox() {
     botWins: 0,
     roundStartTimes: [Date.now()] as number[],
   });
+
+  // Check if tutorial should show
+  React.useEffect(() => {
+    if (tutorialManager.shouldShowTutorial() && !showBot) {
+      // Show after bot selection
+      setTimeout(() => {
+        setShowTutorial(true);
+      }, 500);
+    }
+  }, [showBot]);
 
   React.useEffect(() => {
     if (!state) initLocal([P1, P2]);
@@ -116,6 +138,13 @@ export default function Sandbox() {
       // Play win sound
       if (winner === 'player') {
         soundManager.play('win');
+        haptics.win();
+        
+        // Confetti effect
+        const container = document.getElementById('game-container');
+        if (container) {
+          confettiLight(container);
+        }
       }
       
       let newPlayerTotal = playerTotal;
@@ -378,7 +407,12 @@ export default function Sandbox() {
     doMove({ kind: 'DISCARD', playerId: P1.id, cardId: first } as Move);
   };
 
-  const handleAddToMeld = (meldId: string) => {
+  const handleEmote = (emote: EmoteType) => {
+    const animation = emoteManager.sendEmote(P1.id, emote);
+    if (animation) {
+      soundManager.play('uiClick');
+    }
+  };
     if (!me.hasOpened) {
       toast({
         title: 'Action impossible',
@@ -420,11 +454,12 @@ export default function Sandbox() {
   return (
     <LandscapeOnly>
       <OrientationGuard>
-        <div className="relative w-full h-screen overflow-hidden bg-background">
-      {/* Avatar HUDs */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40">
+        <div id="game-container" className="relative w-full h-screen overflow-hidden bg-background">
+      {/* Avatar HUDs with Emote Bars */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
         <AvatarHud
           name="Bot"
+          playerId="p2"
           isTurn={state?.activePlayer === P2.id}
           timeLeftMs={botTimeLeft}
           timeTotalMs={TURN_TIME_TOTAL}
@@ -433,16 +468,31 @@ export default function Sandbox() {
         />
       </div>
 
-      <div className="fixed bottom-20 left-4 z-40">
+      <div className="fixed bottom-20 left-4 z-40 flex items-center gap-2">
         <AvatarHud
           name="Toi"
+          playerId="p1"
           isTurn={state?.activePlayer === P1.id}
           timeLeftMs={playerTimeLeft}
           timeTotalMs={TURN_TIME_TOTAL}
           score={playerTotal}
           position="bottom"
         />
+        <EmoteBar 
+          playerId={P1.id}
+          onEmote={handleEmote}
+          disabled={!isMyTurn}
+        />
       </div>
+
+      {/* Settings button */}
+      <button
+        onClick={() => setShowSettings(true)}
+        className="fixed top-4 right-4 z-40 p-2 bg-secondary/90 backdrop-blur-md border border-border rounded-lg hover:bg-secondary transition-colors"
+        title="Réglages"
+      >
+        ⚙️
+      </button>
 
       {/* Dev Overlay */}
       {isDevMode && (
@@ -467,10 +517,42 @@ export default function Sandbox() {
           }}
           onResetTimers={() => {
             setPlayerTimeLeft(TURN_TIME_TOTAL);
-            setBotTimeLeft(TURN_TIME_TOTAL);
-          }}
-        />
-      )}
+              setBotTimeLeft(TURN_TIME_TOTAL);
+            }}
+            onGiveEmote={() => {
+              const emotes: EmoteType[] = ['thumbsUp', 'surprised', 'cool', 'clap', 'thinking', 'fire'];
+              const randomEmote = emotes[Math.floor(Math.random() * emotes.length)];
+              emoteManager.sendEmote(P1.id, randomEmote);
+            }}
+            onSimulateWin={(playerId) => {
+              // Simulate win for testing
+              setRoundWinner('player');
+              setShowRoundScore(true);
+            }}
+            onTogglePerfMode={() => {
+              const current = document.documentElement.hasAttribute('data-perf-mode');
+              if (current) {
+                document.documentElement.removeAttribute('data-perf-mode');
+              } else {
+                document.documentElement.setAttribute('data-perf-mode', 'true');
+              }
+            }}
+          />
+        )}
+
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onRestartTutorial={() => setShowTutorial(true)}
+      />
+
+      {/* Tutorial Coach */}
+      <TutorialCoach
+        isActive={showTutorial}
+        onComplete={() => setShowTutorial(false)}
+        onSkip={() => setShowTutorial(false)}
+      />
 
       {/* Scoreboard */}
       <Scoreboard

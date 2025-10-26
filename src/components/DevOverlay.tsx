@@ -3,12 +3,22 @@ import { motion } from 'framer-motion';
 import { X, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import { saveStateManager } from '@/lib/saveState';
+
+interface DevEvent {
+  id: string;
+  message: string;
+  timestamp: number;
+}
 
 interface DevOverlayProps {
   onDistributeTest?: () => void;
   onForceBotDiscard?: () => void;
   onToggleDifficulty?: () => void;
   onResetTimers?: () => void;
+  onGiveEmote?: () => void;
+  onSimulateWin?: (playerId: string) => void;
+  onTogglePerfMode?: () => void;
 }
 
 export function DevOverlay({
@@ -16,15 +26,19 @@ export function DevOverlay({
   onForceBotDiscard,
   onToggleDifficulty,
   onResetTimers,
+  onGiveEmote,
+  onSimulateWin,
+  onTogglePerfMode,
 }: DevOverlayProps) {
   const [position, setPosition] = useState({ x: window.innerWidth - 320, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [fps, setFps] = useState(60);
-  const [logs, setLogs] = useState<string[]>([]);
+  const [events, setEvents] = useState<DevEvent[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
   const rafRef = useRef<number>();
   const frameTimesRef = useRef<number[]>([]);
+  const MAX_EVENTS = 200;
 
   // FPS counter
   useEffect(() => {
@@ -91,8 +105,17 @@ export function DevOverlay({
     }
   }, [isDragging, dragStart]);
 
-  const addLog = (message: string) => {
-    setLogs(prev => [...prev.slice(-9), `${new Date().toLocaleTimeString()}: ${message}`]);
+  const addEvent = (message: string) => {
+    setEvents(prev => {
+      const newEvent: DevEvent = {
+        id: `${Date.now()}-${Math.random()}`,
+        message,
+        timestamp: Date.now(),
+      };
+      const updated = [...prev, newEvent];
+      // Keep only last MAX_EVENTS
+      return updated.slice(-MAX_EVENTS);
+    });
   };
 
   return (
@@ -147,7 +170,7 @@ export function DevOverlay({
               className="w-full h-7 text-xs"
               onClick={() => {
                 onDistributeTest?.();
-                addLog('Main test distribuée');
+                addEvent('Main test distribuée');
               }}
             >
               🎴 Main test
@@ -158,7 +181,7 @@ export function DevOverlay({
               className="w-full h-7 text-xs"
               onClick={() => {
                 onForceBotDiscard?.();
-                addLog('Bot forcé à défausser');
+                addEvent('Bot forcé à défausser');
               }}
             >
               🤖 Forcer défausse bot
@@ -169,7 +192,7 @@ export function DevOverlay({
               className="w-full h-7 text-xs"
               onClick={() => {
                 onToggleDifficulty?.();
-                addLog('Difficulté changée');
+                addEvent('Difficulté changée');
               }}
             >
               🎯 Changer difficulté
@@ -180,22 +203,72 @@ export function DevOverlay({
               className="w-full h-7 text-xs"
               onClick={() => {
                 onResetTimers?.();
-                addLog('Timers réinitialisés');
+                addEvent('Timers réinitialisés');
               }}
             >
               ⏱️ Reset timers
             </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full h-7 text-xs"
+              onClick={() => {
+                onGiveEmote?.();
+                addEvent('Emote aléatoire envoyée');
+              }}
+            >
+              😊 Emote random
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full h-7 text-xs"
+              onClick={() => {
+                onSimulateWin?.('p1');
+                addEvent('Victoire simulée');
+              }}
+            >
+              🏆 Simuler victoire
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full h-7 text-xs"
+              onClick={() => {
+                onTogglePerfMode?.();
+                addEvent('Perf mode toggled');
+              }}
+            >
+              ⚡ Toggle perf mode
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full h-7 text-xs"
+              onClick={() => {
+                if (saveStateManager.hasSavedMatch()) {
+                  saveStateManager.clearSave();
+                  addEvent('Save cleared');
+                } else {
+                  addEvent('No save to clear');
+                }
+              }}
+            >
+              💾 Clear save
+            </Button>
           </div>
 
-          {/* Console logs */}
+          {/* Event log */}
           <div className="border-t border-border pt-2">
-            <p className="text-[10px] font-semibold text-muted-foreground mb-1">CONSOLE</p>
+            <p className="text-[10px] font-semibold text-muted-foreground mb-1">EVENTS ({events.length})</p>
             <div className="bg-secondary/30 rounded p-2 h-24 overflow-y-auto text-[10px] font-mono space-y-0.5">
-              {logs.length === 0 ? (
+              {events.length === 0 ? (
                 <p className="text-muted-foreground/50 italic">Aucun événement</p>
               ) : (
-                logs.map((log, i) => (
-                  <p key={i} className="text-foreground/80 leading-tight">{log}</p>
+                events.slice(-10).map((event) => (
+                  <p key={event.id} className="text-foreground/80 leading-tight">
+                    {new Date(event.timestamp).toLocaleTimeString()}: {event.message}
+                  </p>
                 ))
               )}
             </div>

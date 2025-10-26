@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { audioService } from '@/utils/audioService';
 import { soundManager } from '@/lib/sound';
+import { haptics } from '@/lib/haptics';
 
 interface ActionBarProps {
   onDrawStock: () => void;
@@ -32,36 +33,42 @@ export const ActionBar: React.FC<ActionBarProps> = ({
   const handleDrawStock = () => {
     audioService.playDraw();
     soundManager.play('pick');
+    haptics.pick();
     onDrawStock();
   };
 
   const handleDrawDiscard = () => {
     audioService.playDraw();
     soundManager.play('pick');
+    haptics.pick();
     onDrawDiscard();
   };
 
   const handleLayOpen = () => {
     audioService.playLayMeld();
     soundManager.play('uiClick');
+    haptics.success();
     onLayOpen();
   };
 
   const handleLayMeld = () => {
     audioService.playLayMeld();
     soundManager.play('uiClick');
+    haptics.success();
     onLayMeld();
   };
 
   const handleDiscard = () => {
     audioService.playDiscard();
     soundManager.play('discard');
+    haptics.discard();
     onDiscard();
   };
 
   const handleEndTurn = () => {
     audioService.playTurnChange();
     soundManager.play('uiClick');
+    haptics.tap();
     onEndTurn();
   };
 

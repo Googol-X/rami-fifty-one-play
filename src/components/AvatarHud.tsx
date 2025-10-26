@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { EMOTES, emoteManager } from '@/lib/emotes';
+import { EmoteType } from '@/lib/matchTypes';
 
 interface AvatarHudProps {
   name: string;
+  playerId: string;
   avatarUrl?: string;
   isTurn: boolean;
   timeLeftMs: number;
@@ -13,7 +16,8 @@ interface AvatarHudProps {
 }
 
 export function AvatarHud({ 
-  name, 
+  name,
+  playerId,
   avatarUrl, 
   isTurn, 
   timeLeftMs, 
@@ -22,6 +26,7 @@ export function AvatarHud({
   position = 'top' 
 }: AvatarHudProps) {
   const [progress, setProgress] = useState(100);
+  const [activeEmote, setActiveEmote] = useState<EmoteType | null>(null);
 
   useEffect(() => {
     if (timeLeftMs <= 0 || timeTotalMs <= 0) {
@@ -30,6 +35,16 @@ export function AvatarHud({
     }
     setProgress((timeLeftMs / timeTotalMs) * 100);
   }, [timeLeftMs, timeTotalMs]);
+
+  // Check for active emote
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const emote = emoteManager.getActiveEmote(playerId);
+      setActiveEmote(emote?.emote || null);
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [playerId]);
 
   const circumference = 2 * Math.PI * 20; // radius = 20
   const offset = circumference - (progress / 100) * circumference;
@@ -139,6 +154,25 @@ export function AvatarHud({
           {Math.ceil(timeLeftMs / 1000)}s
         </motion.span>
       )}
+
+      {/* Active emote overlay */}
+      <AnimatePresence>
+        {activeEmote && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, y: -10 }}
+            animate={{ 
+              opacity: 1, 
+              scale: [0.5, 1.2, 1],
+              y: [position === 'top' ? -10 : 10, position === 'top' ? -30 : 30, position === 'top' ? -25 : 25]
+            }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ duration: 0.4 }}
+            className="absolute -top-12 left-1/2 -translate-x-1/2 text-4xl pointer-events-none"
+          >
+            {EMOTES[activeEmote].emoji}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

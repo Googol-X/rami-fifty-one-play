@@ -366,6 +366,7 @@ function TableContent() {
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40">
           <AvatarHud
             name="Bot"
+            playerId="p2"
             isTurn={state?.activePlayer === P2.id}
             timeLeftMs={botTimeLeft}
             timeTotalMs={TURN_TIME_TOTAL}
@@ -377,6 +378,7 @@ function TableContent() {
         <div className="fixed bottom-20 left-4 z-40">
           <AvatarHud
             name="Toi"
+            playerId="p1"
             isTurn={state?.activePlayer === P1.id}
             timeLeftMs={playerTimeLeft}
             timeTotalMs={TURN_TIME_TOTAL}
