@@ -77,9 +77,9 @@ export const Table: React.FC<TableProps> = ({
           <MeldsBoard melds={state.melds} deck={deck} />
 
           {/* Discard pile - positioned on table edge */}
-          <div className="absolute bottom-4 md:bottom-12 right-4 md:right-12 z-20">
+          <div className="absolute right-[12%] top-1/2 -translate-y-1/2 z-30">
             {(() => {
-              const topId = state.piles.discard[state.piles.discard.length - 1];
+              const topId = state.piles.discard.at(-1);
               const topCard = topId ? deck[topId] : undefined;
               
               return (
