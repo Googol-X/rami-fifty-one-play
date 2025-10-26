@@ -106,87 +106,37 @@ export const Table: React.FC<TableProps> = ({
       {/* Players positioned around table */}
       {(() => {
         const opponents = players.filter(p => p.id !== currentPlayerId);
-        const opp1 = opponents[0]; // top
-        const opp2 = opponents[1]; // left
-        const opp3 = opponents[2]; // right
 
         return (
           <>
-            {/* Haut */}
-            {opp1 && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
-                <Hand
-                  faceDown
-                  cards={Array(Math.min(13, opp1.hand.length)).fill('face')}
-                  deck={deck}
-                  selected={new Set()}
-                  onToggle={() => {}}
-                  radius={W < 740 ? 176 : 200}
-                  spread={46}
-                  tilt={6}
-                  overlap={64}
-                  scale={0.82}
-                />
-                <PlayerAvatar
-                  player={opp1}
-                  isActive={state.activePlayer === opp1.id}
-                  position="top"
-                  cardsCount={opp1.hand.length}
-                />
-              </div>
-            )}
+            {opponents.map((p, pos) => {
+              const positionClass = pos === 0 
+                ? 'top-2 left-1/2 -translate-x-1/2' 
+                : pos === 1 
+                ? 'left-2 top-1/2 -translate-y-1/2' 
+                : 'right-2 top-1/2 -translate-y-1/2';
 
-            {/* Gauche */}
-            {opp2 && (
-              <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 -rotate-90 z-20">
-                <Hand
-                  faceDown
-                  cards={Array(Math.min(13, opp2.hand.length)).fill('face')}
-                  deck={deck}
-                  selected={new Set()}
-                  onToggle={() => {}}
-                  radius={W < 740 ? 168 : 190}
-                  spread={44}
-                  tilt={6}
-                  overlap={64}
-                  scale={0.8}
-                />
-                <div className="rotate-90 origin-left">
-                  <PlayerAvatar
-                    player={opp2}
-                    isActive={state.activePlayer === opp2.id}
-                    position="left"
-                    cardsCount={opp2.hand.length}
-                  />
+              return (
+                <div key={p.id} className={`absolute ${positionClass} z-20`}>
+                  <div className="flex flex-col items-center gap-2">
+                    <PlayerAvatar
+                      player={p}
+                      isActive={state.activePlayer === p.id}
+                      position={pos === 0 ? 'top' : pos === 1 ? 'left' : 'right'}
+                      cardsCount={p.hand.length}
+                    />
+                    <div className="flex items-center gap-1 relative">
+                      <div className="w-8 h-12 rounded bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 border-2 border-blue-700/50 shadow-lg" />
+                      <div className="w-8 h-12 rounded bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 border-2 border-blue-700/50 shadow-lg" />
+                      <div className="w-8 h-12 rounded bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 border-2 border-blue-700/50 shadow-lg" />
+                      <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs bg-black/80 text-white px-2 py-0.5 rounded-full font-bold border border-white/20">
+                        {p.hand.length}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Droite */}
-            {opp3 && (
-              <div className="absolute right-[-16px] top-1/2 -translate-y-1/2 rotate-90 z-20">
-                <Hand
-                  faceDown
-                  cards={Array(Math.min(13, opp3.hand.length)).fill('face')}
-                  deck={deck}
-                  selected={new Set()}
-                  onToggle={() => {}}
-                  radius={W < 740 ? 168 : 190}
-                  spread={44}
-                  tilt={6}
-                  overlap={64}
-                  scale={0.8}
-                />
-                <div className="-rotate-90 origin-right">
-                  <PlayerAvatar
-                    player={opp3}
-                    isActive={state.activePlayer === opp3.id}
-                    position="right"
-                    cardsCount={opp3.hand.length}
-                  />
-                </div>
-              </div>
-            )}
+              );
+            })}
           </>
         );
       })()}
