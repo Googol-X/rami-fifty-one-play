@@ -413,6 +413,8 @@ export default function Sandbox() {
       soundManager.play('uiClick');
     }
   };
+
+  const handleAddToMeld = (meldId: string) => {
     if (!me.hasOpened) {
       toast({
         title: 'Action impossible',
