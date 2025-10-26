@@ -371,6 +371,8 @@ function TableContent() {
         state={state}
         deck={deck}
         currentPlayerId={P1.id}
+        onDrawStock={handleDrawStock}
+        onDrawDiscard={handleDrawDiscard}
       />
       </div>
 

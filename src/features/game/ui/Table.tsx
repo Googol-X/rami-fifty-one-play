@@ -4,6 +4,8 @@ import type { TableState } from '@/types/game';
 import { PlayerAvatar } from './PlayerAvatar';
 import { MeldsBoard } from './MeldsBoard';
 import { Hand } from './Hand';
+import { DiscardPile } from './DiscardPile';
+import { DrawPile } from './DrawPile';
 import { confettiVariants, winnerAppearVariants } from './animations';
 import { audioService } from '@/utils/audioService';
 
@@ -11,9 +13,17 @@ interface TableProps {
   state: TableState;
   deck: Record<string, any>;
   currentPlayerId: string;
+  onDrawStock?: () => void;
+  onDrawDiscard?: () => void;
 }
 
-export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) => {
+export const Table: React.FC<TableProps> = ({ 
+  state, 
+  deck, 
+  currentPlayerId,
+  onDrawStock,
+  onDrawDiscard 
+}) => {
   const players = state.players;
   const currentPlayerIndex = players.findIndex(p => p.id === currentPlayerId);
   
@@ -59,61 +69,24 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
           <MeldsBoard melds={state.melds} deck={deck} />
 
           {/* Discard pile - positioned on table edge */}
-          {state.piles.discard.length > 0 && (
-            <div className="absolute bottom-4 md:bottom-12 right-4 md:right-12 z-20">
-              <motion.div 
-                className="relative"
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ duration: 0.5, ease: "backOut" }}
-              >
-                <div className="w-16 h-24 md:w-20 md:h-28 rounded-xl border-3 border-accent bg-card flex flex-col items-center justify-center shadow-2xl">
-                  <div className="text-[9px] md:text-xs text-muted-foreground mb-1 font-bold uppercase tracking-wider">Défausse</div>
-                  {deck[state.piles.discard[state.piles.discard.length - 1]] && (() => {
-                    const card = deck[state.piles.discard[state.piles.discard.length - 1]];
-                    const isRed = card.suit === '♥' || card.suit === '♦';
-                    return card.joker ? (
-                      <span className="text-3xl">🃏</span>
-                    ) : (
-                      <>
-                        <span className={`text-sm md:text-base font-bold ${isRed ? 'text-accent' : 'text-card-foreground'}`}>{card.rank}</span>
-                        <span className={`text-2xl md:text-3xl ${isRed ? 'text-accent' : 'text-card-foreground'}`}>{card.suit}</span>
-                      </>
-                    );
-                  })()}
-                </div>
-                <motion.div
-                  className="absolute -inset-1 rounded-xl border-2 border-accent/60"
-                  animate={{
-                    opacity: [0.4, 1, 0.4],
-                    scale: [1, 1.08, 1]
-                  }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                />
-              </motion.div>
-            </div>
-          )}
+          <div className="absolute bottom-4 md:bottom-12 right-4 md:right-12 z-20">
+            <DiscardPile 
+              topCard={state.piles.discard.length > 0 
+                ? deck[state.piles.discard[state.piles.discard.length - 1]]
+                : undefined
+              }
+              onPick={onDrawDiscard}
+              disabled={!onDrawDiscard}
+            />
+          </div>
 
           {/* Draw pile - positioned on table edge */}
           <div className="absolute bottom-4 md:bottom-12 left-4 md:left-12 z-20">
-            <motion.div 
-              className="w-16 h-24 md:w-20 md:h-28 rounded-xl border-3 border-primary bg-gradient-to-br from-primary/30 to-primary/10 flex flex-col items-center justify-center shadow-2xl backdrop-blur-sm"
-              whileHover={{ 
-                scale: 1.08, 
-                boxShadow: "0 0 30px hsl(var(--primary) / 0.6)",
-                transition: { duration: 0.2 }
-              }}
-            >
-              <div className="text-[9px] md:text-xs text-primary font-bold mb-1 uppercase tracking-wider">Pioche</div>
-              <div className="text-2xl md:text-4xl font-bold text-primary drop-shadow-lg">
-                {state.piles.draw.length}
-              </div>
-              <div className="text-[8px] md:text-xs text-primary/70 mt-1">cartes</div>
-            </motion.div>
+            <DrawPile 
+              count={state.piles.draw.length}
+              onDraw={onDrawStock}
+              disabled={!onDrawStock}
+            />
           </div>
         </div>
       </div>

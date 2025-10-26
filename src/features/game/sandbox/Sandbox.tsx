@@ -432,6 +432,8 @@ export default function Sandbox() {
             state={state}
             deck={deck}
             currentPlayerId={P1.id}
+            onDrawStock={handleDrawStock}
+            onDrawDiscard={handleDrawDiscard}
           />
         </div>
         
