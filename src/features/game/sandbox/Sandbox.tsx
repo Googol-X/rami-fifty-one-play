@@ -455,9 +455,9 @@ export default function Sandbox() {
                   <span className="text-[11px] opacity-80">Zoom</span>
                   <input 
                     type="range" 
-                    min={0.72} 
-                    max={1.18} 
-                    step={0.04}
+                    min={0.75} 
+                    max={1.15} 
+                    step={0.05}
                     value={handScale}
                     onChange={(e) => setHandScale(parseFloat(e.target.value))}
                     style={{ accentColor: '#FFD54A' }}
@@ -475,12 +475,10 @@ export default function Sandbox() {
                 onReorder={(newCards) => {
                   reorderHand(P1.id, newCards);
                 }}
-                {...(windowWidth < 740
-                  ? { radius: 210, spread: 56, tilt: -9, overlap: 66, scale: handScale }
-                  : windowWidth < 980
-                  ? { radius: 260, spread: 64, tilt: -8, overlap: 58, scale: handScale }
-                  : { radius: 315, spread: 70, tilt: -8, overlap: 50, scale: handScale }
-                )}
+                radius={280}
+                spread={68}
+                overlap={48}
+                scale={handScale}
                 size="md" 
               />
             </div>
