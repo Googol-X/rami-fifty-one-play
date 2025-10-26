@@ -96,68 +96,92 @@ export const Table: React.FC<TableProps> = ({
       </div>
 
       {/* Players positioned around table */}
-      {players.map((player, index) => {
-        const position = getPlayerPosition(index);
-        const isActive = player.id === state.activePlayer;
-        const isCurrentPlayer = player.id === currentPlayerId;
-        
-        // Skip rendering hand for current player (shown at bottom of screen)
-        if (isCurrentPlayer) return null;
-        
-        // Position-specific configurations
-        const configs = {
-          top: {
-            containerClass: 'top-[-40px] left-1/2 -translate-x-1/2',
-            handProps: { radius: 260, spread: 60, tilt: 6, overlap: 52, scale: 0.85 },
-            rotation: 0,
-            avatarClass: ''
-          },
-          left: {
-            containerClass: 'left-[-30px] top-1/2 -translate-y-1/2',
-            handProps: { radius: 240, spread: 56, tilt: -6, overlap: 52, scale: 0.85 },
-            rotation: -90,
-            avatarClass: 'rotate-90'
-          },
-          right: {
-            containerClass: 'right-[-30px] top-1/2 -translate-y-1/2',
-            handProps: { radius: 240, spread: 56, tilt: -6, overlap: 52, scale: 0.85 },
-            rotation: 90,
-            avatarClass: '-rotate-90'
-          }
-        };
-        
-        const config = configs[position];
-        if (!config) return null;
-
-        // Create fake card array for face-down display
-        const fakeCards = Array(Math.min(13, player.hand.length)).fill('face');
+      {(() => {
+        const opponents = players.filter(p => p.id !== currentPlayerId);
+        const opp1 = opponents[0]; // top
+        const opp2 = opponents[1]; // left
+        const opp3 = opponents[2]; // right
 
         return (
-          <div
-            key={player.id}
-            className={`absolute ${config.containerClass} z-10`}
-          >
-            <div style={{ transform: `rotate(${config.rotation}deg)` }}>
-              <Hand
-                cards={fakeCards}
-                deck={deck}
-                selected={new Set()}
-                onToggle={() => {}}
-                {...config.handProps}
-                faceDown
-              />
-              <div className={config.avatarClass}>
+          <>
+            {/* HAUT (centre) */}
+            {opp1 && (
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10">
+                <Hand
+                  cards={Array(Math.min(13, opp1.hand.length)).fill('face')}
+                  deck={deck}
+                  selected={new Set()}
+                  onToggle={() => {}}
+                  radius={220}
+                  spread={52}
+                  tilt={6}
+                  overlap={56}
+                  scale={0.85}
+                  faceDown
+                />
                 <PlayerAvatar
-                  player={player}
-                  isActive={isActive}
-                  position={position}
-                  cardsCount={player.hand.length}
+                  player={opp1}
+                  isActive={state.activePlayer === opp1.id}
+                  position="top"
+                  cardsCount={opp1.hand.length}
                 />
               </div>
-            </div>
-          </div>
+            )}
+
+            {/* GAUCHE */}
+            {opp2 && (
+              <div className="absolute left-[-24px] top-1/2 -translate-y-1/2 -rotate-90 z-10">
+                <Hand
+                  cards={Array(Math.min(13, opp2.hand.length)).fill('face')}
+                  deck={deck}
+                  selected={new Set()}
+                  onToggle={() => {}}
+                  radius={210}
+                  spread={48}
+                  tilt={6}
+                  overlap={56}
+                  scale={0.85}
+                  faceDown
+                />
+                <div className="rotate-90 origin-left">
+                  <PlayerAvatar
+                    player={opp2}
+                    isActive={state.activePlayer === opp2.id}
+                    position="left"
+                    cardsCount={opp2.hand.length}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* DROITE */}
+            {opp3 && (
+              <div className="absolute right-[-24px] top-1/2 -translate-y-1/2 rotate-90 z-10">
+                <Hand
+                  cards={Array(Math.min(13, opp3.hand.length)).fill('face')}
+                  deck={deck}
+                  selected={new Set()}
+                  onToggle={() => {}}
+                  radius={210}
+                  spread={48}
+                  tilt={6}
+                  overlap={56}
+                  scale={0.85}
+                  faceDown
+                />
+                <div className="-rotate-90 origin-right">
+                  <PlayerAvatar
+                    player={opp3}
+                    isActive={state.activePlayer === opp3.id}
+                    position="right"
+                    cardsCount={opp3.hand.length}
+                  />
+                </div>
+              </div>
+            )}
+          </>
         );
-      })}
+      })()}
 
       {/* Winner overlay */}
       <AnimatePresence>
