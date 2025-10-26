@@ -3,6 +3,7 @@ import { useGame } from '@/contexts/GameContext';
 import type { Move } from '@/types/game';
 import { Hand } from '../ui/Hand';
 import { Table } from '../ui/Table';
+import { PlayersArea } from '../ui/PlayersArea';
 import { ActionBar } from '../ui/ActionBar';
 import { Scoreboard } from '../ui/Scoreboard';
 import { AdvancedBotAI, BotDifficulty } from '@/utils/advancedBotAI';
@@ -313,6 +314,45 @@ export default function Sandbox() {
     doMove({ kind: 'DISCARD', playerId: P1.id, cardId: first } as Move);
   };
 
+  const handleAddToMeld = (meldId: string) => {
+    if (!me.hasOpened) {
+      toast({
+        title: 'Action impossible',
+        description: 'Vous devez d\'abord ouvrir avec 51 points',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (selected.size === 0) {
+      toast({
+        title: 'Aucune carte sélectionnée',
+        description: 'Sélectionnez au moins une carte à ajouter',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Add each selected card to the meld
+      const cards = Array.from(selected);
+      for (const cardId of cards) {
+        doMove({ 
+          kind: 'ADD_TO_MELD', 
+          playerId: P1.id, 
+          meldId, 
+          cardId 
+        } as Move);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Impossible d\'ajouter les cartes',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="relative w-full h-screen overflow-hidden bg-background">
       {/* Scoreboard */}
@@ -361,16 +401,27 @@ export default function Sandbox() {
       </div>
 
       {/* Main game table */}
-      <div className="pt-16 pb-32 h-full">
-        <Table
+      <div className="pt-16 h-full flex flex-col">
+        <div className="flex-1 overflow-hidden">
+          <Table
+            state={state}
+            deck={deck}
+            currentPlayerId={P1.id}
+          />
+        </div>
+        
+        {/* Players melds area */}
+        <PlayersArea
           state={state}
           deck={deck}
           currentPlayerId={P1.id}
+          selectedCards={selected}
+          onAddToMeld={handleAddToMeld}
         />
       </div>
 
       {/* Player's hand - sticky at bottom above action bar */}
-      <div className="fixed bottom-16 md:bottom-24 left-0 right-0 z-30 bg-gradient-to-t from-background via-background to-transparent pt-2 md:pt-6 pb-2 md:pb-4">
+      <div className="fixed bottom-16 md:bottom-24 left-0 right-0 z-30 bg-gradient-to-t from-background via-background to-background pt-2 md:pt-6 pb-2 md:pb-4">
         <div className="container mx-auto px-2 md:px-4">
           <div className="flex items-center justify-between mb-1 md:mb-2">
             <h3 className="text-xs md:text-sm font-semibold text-muted-foreground">
