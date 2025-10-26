@@ -8,15 +8,35 @@ import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-export const Hand: React.FC<{
+type FanHandProps = {
   cards: string[];
   deck: Record<string, Card>;
   selected: Set<string>;
   onToggle: (id: string) => void;
   onReorder?: (newCards: string[]) => void;
-  size?: 'sm'|'md'|'lg';
+  radius?: number;
+  spread?: number;
+  tilt?: number;
+  overlap?: number;
   scale?: number;
-}> = ({ cards, deck, selected, onToggle, onReorder, size='md', scale=1 }) => {
+  size?: 'sm' | 'md' | 'lg';
+  faceDown?: boolean;
+};
+
+export const Hand: React.FC<FanHandProps> = ({ 
+  cards, 
+  deck, 
+  selected, 
+  onToggle, 
+  onReorder,
+  radius = 380,
+  spread = 90,
+  tilt = -6,
+  overlap = 38,
+  scale = 0.9,
+  size = 'md',
+  faceDown = false
+}) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropTarget, setDropTarget] = useState<number | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -115,8 +135,9 @@ export const Hand: React.FC<{
 
   // Calculate dynamic fan parameters
   const maxCards = cards.length;
-  const fanSpread = maxCards > 10 ? 6 : maxCards > 7 ? 10 : 15;
-  const fanRadius = 800;
+  const totalSpread = spread;
+  const anglePerCard = maxCards > 1 ? totalSpread / (maxCards - 1) : 0;
+  const startAngle = -totalSpread / 2 + tilt;
   
   return (
     <div className="w-full flex justify-center pb-4 px-2">
@@ -133,14 +154,13 @@ export const Hand: React.FC<{
         className="fan"
         style={{ 
           transform: `scale(${scale})`,
-          '--fan-radius': `${fanRadius}px`
+          '--fan-radius': `${radius}px`,
+          '--overlap': `${overlap}px`
         } as React.CSSProperties}
       >
         {cards.map((id, index) => {
-          const totalCards = cards.length;
-          const centerIndex = (totalCards - 1) / 2;
-          const offsetFromCenter = index - centerIndex;
-          const rotation = offsetFromCenter * fanSpread;
+          const rotation = startAngle + (index * anglePerCard);
+          const zIndex = faceDown ? index : (hoveredIndex === index ? 40 : selected.has(id) ? 30 : 20 + index);
           
           return (
             <div
@@ -159,15 +179,15 @@ export const Hand: React.FC<{
               title={onReorder ? "Glissez pour déplacer cette carte" : undefined}
               className={cn(
                 "fanCard",
-                onReorder && "cursor-grab active:cursor-grabbing",
+                !faceDown && onReorder && "cursor-grab active:cursor-grabbing",
                 dragIndex === index && "opacity-30 scale-90 cursor-grabbing",
                 dropTarget === index && dragIndex !== index && "scale-110",
-                hoveredIndex === index && "-translate-y-12"
+                !faceDown && hoveredIndex === index && "-translate-y-12"
               )}
               style={{
                 transform: `translateX(-50%) rotate(${rotation}deg)`,
-                zIndex: hoveredIndex === index ? 40 : selected.has(id) ? 30 : 20 - Math.abs(offsetFromCenter),
-                '--fan-radius': `${fanRadius}px`
+                zIndex,
+                '--fan-radius': `${radius}px`
               } as React.CSSProperties}
             >
             <motion.div
@@ -178,7 +198,7 @@ export const Hand: React.FC<{
               className="relative"
             >
               {/* Move buttons - visible on hover */}
-              {onReorder && hoveredIndex === index && dragIndex === null && (
+              {!faceDown && onReorder && hoveredIndex === index && dragIndex === null && (
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 flex gap-1">
                   <Button
                     size="sm"
@@ -208,7 +228,7 @@ export const Hand: React.FC<{
               )}
               
               {/* Drag indicator */}
-              {onReorder && hoveredIndex === index && dragIndex === null && (
+              {!faceDown && onReorder && hoveredIndex === index && dragIndex === null && (
                 <div className="absolute -left-3 top-1/2 -translate-y-1/2 z-20">
                   <div className="bg-background/90 rounded-full p-1 border-2 border-primary shadow-lg animate-pulse">
                     <GripVertical className="w-3 h-3 text-primary" />
@@ -225,12 +245,27 @@ export const Hand: React.FC<{
                 />
               )}
               
-              <CardView 
-                card={deck[id]} 
-                selected={selected.has(id)} 
-                onClick={() => handleToggle(id)} 
-                size={size} 
-              />
+              {faceDown ? (
+                <div 
+                  className={cn(
+                    "rounded-lg bg-gradient-to-br from-primary/80 to-primary border-2 border-primary/40 shadow-lg",
+                    size === 'sm' && "w-12 h-16",
+                    size === 'md' && "w-16 h-24",
+                    size === 'lg' && "w-20 h-28"
+                  )}
+                >
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-white/30 text-xl font-bold">🂠</div>
+                  </div>
+                </div>
+              ) : (
+                <CardView 
+                  card={deck[id]} 
+                  selected={selected.has(id)} 
+                  onClick={() => handleToggle(id)} 
+                  size={size} 
+                />
+              )}
             </motion.div>
           </div>
           );
