@@ -36,6 +36,7 @@ export default function Sandbox() {
   const [isBotThinking, setIsBotThinking] = React.useState(false);
   const [showBotPanel, setShowBotPanel] = React.useState(true);
   const [botStarted, setBotStarted] = React.useState(false);
+  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
   
   // Game score tracking
   const [playerTotal, setPlayerTotal] = React.useState(0);
@@ -53,6 +54,13 @@ export default function Sandbox() {
   React.useEffect(() => {
     if (!state) initLocal([P1, P2]);
   }, [state, initLocal]);
+
+  // Responsive window width tracking
+  React.useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Check for round end (when someone's hand is empty)
   React.useEffect(() => {
@@ -461,11 +469,12 @@ export default function Sandbox() {
                 onReorder={(newCards) => {
                   reorderHand(P1.id, newCards);
                 }}
-                radius={320}
-                spread={72}
-                tilt={-8}
-                overlap={46}
-                scale={handScale}
+                {...(windowWidth < 740
+                  ? { radius: 210, spread: 56, tilt: -9, overlap: 66, scale: handScale }
+                  : windowWidth < 980
+                  ? { radius: 260, spread: 64, tilt: -8, overlap: 58, scale: handScale }
+                  : { radius: 315, spread: 70, tilt: -8, overlap: 50, scale: handScale }
+                )}
                 size="md" 
               />
             </div>
