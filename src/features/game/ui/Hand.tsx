@@ -113,14 +113,10 @@ export const Hand: React.FC<{
     setDropTarget(null);
   };
 
-  // Calculate dynamic fan spread to avoid horizontal scroll
+  // Calculate dynamic fan parameters
   const maxCards = cards.length;
-  const baseSpacing = size === 'sm' ? 24 : size === 'lg' ? 44 : 32;
-  const maxSpacing = Math.min(baseSpacing, (typeof window !== 'undefined' ? window.innerWidth * 0.75 : 1200) / Math.max(maxCards, 1));
-  
-  // Fan rotation angle - more cards = tighter fan
-  const fanSpread = maxCards > 10 ? 8 : maxCards > 7 ? 12 : 15;
-  const fanRadius = 900;
+  const fanSpread = maxCards > 10 ? 6 : maxCards > 7 ? 10 : 15;
+  const fanRadius = 800;
   
   return (
     <div className="w-full flex justify-center pb-4 px-2">
@@ -132,24 +128,19 @@ export const Hand: React.FC<{
           <GripVertical className="w-3 h-3" />
         </div>
       )}
-      <motion.div 
+      <div 
         ref={containerRef}
-        className="relative flex items-end justify-center"
+        className="fan"
         style={{ 
           transform: `scale(${scale})`,
-          transformOrigin: 'center bottom',
-          minHeight: '160px',
-          paddingTop: '50px',
-          maxWidth: '100%'
-        }}
+          '--fan-radius': `${fanRadius}px`
+        } as React.CSSProperties}
       >
         {cards.map((id, index) => {
-          // Calculate fan positioning with dynamic spacing
           const totalCards = cards.length;
           const centerIndex = (totalCards - 1) / 2;
           const offsetFromCenter = index - centerIndex;
           const rotation = offsetFromCenter * fanSpread;
-          const yOffset = Math.abs(offsetFromCenter) * 10;
           
           return (
             <div
@@ -167,18 +158,17 @@ export const Hand: React.FC<{
               onMouseLeave={() => setHoveredIndex(null)}
               title={onReorder ? "Glissez pour déplacer cette carte" : undefined}
               className={cn(
-                "absolute transition-all duration-300 group",
+                "fanCard",
                 onReorder && "cursor-grab active:cursor-grabbing",
-                dragIndex === index && "opacity-30 scale-90 cursor-grabbing z-50",
+                dragIndex === index && "opacity-30 scale-90 cursor-grabbing",
                 dropTarget === index && dragIndex !== index && "scale-110",
-                hoveredIndex === index && "z-40 -translate-y-12"
+                hoveredIndex === index && "-translate-y-12"
               )}
               style={{
-                transform: `rotate(${rotation}deg) translateY(${yOffset}px)`,
-                transformOrigin: `center ${fanRadius}px`,
-                left: `${index * maxSpacing}px`,
-                zIndex: hoveredIndex === index ? 40 : selected.has(id) ? 30 : 20 - Math.abs(offsetFromCenter)
-              }}
+                transform: `translateX(-50%) rotate(${rotation}deg)`,
+                zIndex: hoveredIndex === index ? 40 : selected.has(id) ? 30 : 20 - Math.abs(offsetFromCenter),
+                '--fan-radius': `${fanRadius}px`
+              } as React.CSSProperties}
             >
             <motion.div
               custom={index}
@@ -245,7 +235,7 @@ export const Hand: React.FC<{
           </div>
           );
         })}
-      </motion.div>
+      </div>
     </div>
   );
 };
