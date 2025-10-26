@@ -13,6 +13,7 @@ export const DrawPile: React.FC<DrawPileProps> = ({
 }) => {
   return (
     <button 
+      data-tutorial-id="draw-pile"
       className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/30 to-primary/10 px-3 py-2 shadow-xl backdrop-blur-sm hover:ring-2 hover:ring-primary/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       title={count > 0 ? "Piocher une carte" : "Pioche vide"}
       onClick={onDraw}

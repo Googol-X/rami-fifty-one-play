@@ -151,6 +151,7 @@ export const Hand: React.FC<FanHandProps> = ({
       )}
       <div 
         ref={containerRef}
+        data-tutorial-id="player-hand"
         className="fan"
         style={{ 
           transform: `scale(${scale})`,

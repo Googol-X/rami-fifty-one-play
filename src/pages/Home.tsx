@@ -1,10 +1,19 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
-import { BookOpen, Play, Users } from 'lucide-react';
+import { BookOpen, Play, Users, Gamepad2 } from 'lucide-react';
+import { SeatingChooser } from '@/components/SeatingChooser';
+import type { Player } from '@/lib/matchTypes';
 
 export default function Home() {
   const navigate = useNavigate();
+  const [showSeating, setShowSeating] = useState(false);
+
+  const handleStartLocal = (players: Player[]) => {
+    setShowSeating(false);
+    navigate('/table', { state: { localPlayers: players } });
+  };
 
   return (
     <Layout>
@@ -24,7 +33,16 @@ export default function Home() {
             className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-xl animate-glow hover:scale-105 transition-transform"
           >
             <Play className="mr-2 h-5 w-5" />
-            Jouer Hors Ligne
+            Jouer vs IA
+          </Button>
+
+          <Button 
+            size="lg"
+            onClick={() => setShowSeating(true)}
+            className="text-lg px-8 py-6 bg-secondary hover:bg-secondary/90 text-secondary-foreground font-bold shadow-xl hover:scale-105 transition-transform"
+          >
+            <Gamepad2 className="mr-2 h-5 w-5" />
+            Partie Locale
           </Button>
 
           <Button 
@@ -64,6 +82,13 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {showSeating && (
+        <SeatingChooser
+          onStart={handleStartLocal}
+          onCancel={() => setShowSeating(false)}
+        />
+      )}
     </Layout>
   );
 }

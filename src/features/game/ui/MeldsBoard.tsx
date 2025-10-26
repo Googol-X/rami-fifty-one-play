@@ -99,7 +99,7 @@ export const MeldsBoard: React.FC<MeldsBoardProps> = ({ melds, deck }) => {
 
   return (
     <div className="absolute inset-0 p-4 flex items-center justify-center overflow-auto">
-      <div className="flex flex-wrap gap-4 justify-center items-center max-w-5xl">
+      <div className="flex flex-wrap gap-4 justify-center items-center max-w-5xl" data-tutorial-id="melds-board">
         {melds.map(renderMeld)}
       </div>
     </div>

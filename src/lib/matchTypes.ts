@@ -38,6 +38,7 @@ export interface MatchStateLocal {
     owner: string;
     type: 'set' | 'run';
     cards: string[];
+    points: number;
   }>;
   hasOpened: Record<string, boolean>; // playerId -> hasOpened
   settings: {

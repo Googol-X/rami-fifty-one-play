@@ -16,6 +16,7 @@ export const DiscardPile: React.FC<DiscardPileProps> = ({
   
   return (
     <button
+      data-tutorial-id="discard-pile"
       className="rounded-xl border-2 border-accent bg-card/90 px-3 py-2 shadow-xl hover:ring-2 hover:ring-accent/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       title={topCard ? "Piocher la défausse" : "Défausse vide"}
       onClick={onPick}

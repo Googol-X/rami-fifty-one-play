@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { GameProvider, useGame } from '@/contexts/GameContext';
+import { useLocalMatch } from '@/contexts/LocalMatchContext';
+import { saveStateManager } from '@/lib/saveState';
+import type { Player } from '@/lib/matchTypes';
 import { Table as GameTable } from '@/features/game/ui/Table';
 import { Hand } from '@/features/game/ui/Hand';
 import { ActionBar } from '@/features/game/ui/ActionBar';
@@ -18,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Brain } from 'lucide-react';
 import { useDevMode } from '@/hooks/useDevMode';
 import { soundManager } from '@/lib/sound';
+import { motion } from 'framer-motion';
 
 const P1 = { id: 'p1', displayName: 'Toi' };
 const P2 = { id: 'p2', displayName: 'Bot' };
@@ -559,11 +563,73 @@ function TableContent() {
 
 export default function Table() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
   const gameId = searchParams.get('gameId');
+  const localPlayers = location.state?.localPlayers as Player[] | undefined;
+  const { loadSavedMatch, initMatch } = useLocalMatch();
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
+
+  // Check for saved match on mount (local mode only)
+  useEffect(() => {
+    if (localPlayers && !gameId) {
+      const hasSaved = saveStateManager.hasSavedMatch();
+      if (hasSaved) {
+        setShowResumeDialog(true);
+      } else {
+        initMatch(localPlayers);
+      }
+    }
+  }, [localPlayers, gameId, initMatch]);
+
+  const handleResume = () => {
+    const success = loadSavedMatch();
+    if (!success) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger la partie sauvegardée',
+        variant: 'destructive',
+      });
+      if (localPlayers) initMatch(localPlayers);
+    }
+    setShowResumeDialog(false);
+  };
+
+  const handleNewGame = () => {
+    saveStateManager.clearSave();
+    if (localPlayers) initMatch(localPlayers);
+    setShowResumeDialog(false);
+  };
 
   return (
-    <GameProvider roomId={gameId || undefined}>
-      <TableContent />
-    </GameProvider>
+    <>
+      <GameProvider roomId={gameId || undefined}>
+        <TableContent />
+      </GameProvider>
+      
+      {showResumeDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-secondary border-2 border-primary rounded-xl p-6 max-w-md"
+          >
+            <h2 className="text-xl font-bold mb-4">Reprendre la partie ?</h2>
+            <p className="text-muted-foreground mb-6">
+              Une partie sauvegardée a été trouvée. Voulez-vous la reprendre ou commencer une nouvelle partie ?
+            </p>
+            <div className="flex gap-3">
+              <Button onClick={handleNewGame} variant="outline" className="flex-1">
+                Nouvelle partie
+              </Button>
+              <Button onClick={handleResume} className="flex-1">
+                Reprendre
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </>
   );
 }
