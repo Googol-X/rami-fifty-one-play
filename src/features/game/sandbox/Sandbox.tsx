@@ -34,7 +34,7 @@ export default function Sandbox() {
   const [roundNumber, setRoundNumber] = React.useState(1);
   const [botDifficulty, setBotDifficulty] = React.useState<BotDifficulty>('medium');
   const [isBotThinking, setIsBotThinking] = React.useState(false);
-  const [showBotPanel, setShowBotPanel] = React.useState(true);
+  const [showBot, setShowBot] = React.useState(true);
   const [botStarted, setBotStarted] = React.useState(false);
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
   
@@ -57,7 +57,7 @@ export default function Sandbox() {
 
   // Reset bot panel when game state changes
   React.useEffect(() => {
-    setShowBotPanel(true);
+    setShowBot(true);
   }, [state?.id]);
 
   // Responsive window width tracking
@@ -116,8 +116,8 @@ export default function Sandbox() {
     }
   }, [botDifficulty, botStarted]);
   
-  const onDifficultySelected = (level: BotDifficulty) => {
-    setShowBotPanel(false);
+  const pick = (level: BotDifficulty) => {
+    setShowBot(false);
     setBotDifficulty(level);
     setBotStarted(true); // bot: draw -> try meld -> discard
   };
@@ -391,8 +391,8 @@ export default function Sandbox() {
       />
 
       {/* Bot difficulty selector */}
-      {showBotPanel && (
-        <BotDifficultyPanel onSelect={onDifficultySelected} />
+      {showBot && (
+        <BotDifficultyPanel onSelect={pick} />
       )}
 
       {/* Main game table */}
