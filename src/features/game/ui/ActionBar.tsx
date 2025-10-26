@@ -12,6 +12,8 @@ interface ActionBarProps {
   onEndTurn: () => void;
   hasOpened: boolean;
   canAct: boolean;
+  deck?: Record<string, any>;
+  topDiscard?: string;
 }
 
 export const ActionBar: React.FC<ActionBarProps> = ({
@@ -22,7 +24,9 @@ export const ActionBar: React.FC<ActionBarProps> = ({
   onDiscard,
   onEndTurn,
   hasOpened,
-  canAct
+  canAct,
+  deck,
+  topDiscard
 }) => {
   const handleDrawStock = () => {
     audioService.playDraw();
@@ -73,12 +77,16 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             
             <Button
               onClick={handleDrawDiscard}
-              disabled={!canAct}
+              disabled={!canAct || !topDiscard}
               variant="secondary"
               size="sm"
               className="gap-1 text-xs md:text-sm font-bold min-w-[70px] md:min-w-[110px] h-8 md:h-11 shadow-lg hover:shadow-accent/20 transition-all"
             >
-              ♻️ <span className="hidden sm:inline">Défausse</span><span className="sm:hidden">Déf.</span>
+              {topDiscard && deck ? (
+                deck[topDiscard].joker ? '🃏' : `${deck[topDiscard].rank}${deck[topDiscard].suit}`
+              ) : (
+                <>♻️ <span className="hidden sm:inline">Défausse</span><span className="sm:hidden">Déf.</span></>
+              )}
             </Button>
 
             {!hasOpened ? (

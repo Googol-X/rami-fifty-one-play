@@ -496,6 +496,8 @@ export default function Sandbox() {
         onEndTurn={() => doMove({ kind: 'END_TURN', playerId: P1.id })}
         hasOpened={me.hasOpened}
         canAct={isMyTurn}
+        deck={deck}
+        topDiscard={state.piles.discard.at(-1)}
       />
 
       {/* Game Over Screen */}
