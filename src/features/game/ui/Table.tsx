@@ -70,14 +70,18 @@ export const Table: React.FC<TableProps> = ({
 
           {/* Discard pile - positioned on table edge */}
           <div className="absolute bottom-4 md:bottom-12 right-4 md:right-12 z-20">
-            <DiscardPile 
-              topCard={state.piles.discard.length > 0 
-                ? deck[state.piles.discard[state.piles.discard.length - 1]]
-                : undefined
-              }
-              onPick={onDrawDiscard}
-              disabled={!onDrawDiscard}
-            />
+            {(() => {
+              const topId = state.piles.discard[state.piles.discard.length - 1];
+              const topCard = topId ? deck[topId] : undefined;
+              
+              return (
+                <DiscardPile 
+                  topCard={topCard}
+                  onPick={onDrawDiscard}
+                  disabled={!onDrawDiscard}
+                />
+              );
+            })()}
           </div>
 
           {/* Draw pile - positioned on table edge */}
