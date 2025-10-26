@@ -113,16 +113,22 @@ export const Hand: React.FC<{
     setDropTarget(null);
   };
 
-  // Calculate fan spread for cards
-  const fanSpread = Math.min(15, 120 / Math.max(cards.length - 1, 1));
-  const fanRadius = 800; // Radius for the arc
+  // Calculate dynamic fan spread to avoid horizontal scroll
+  const maxCards = cards.length;
+  const baseSpacing = size === 'sm' ? 24 : size === 'lg' ? 44 : 32;
+  const maxSpacing = Math.min(baseSpacing, (typeof window !== 'undefined' ? window.innerWidth * 0.75 : 1200) / Math.max(maxCards, 1));
+  
+  // Fan rotation angle - more cards = tighter fan
+  const fanSpread = maxCards > 10 ? 8 : maxCards > 7 ? 12 : 15;
+  const fanRadius = 900;
   
   return (
-    <div className="w-full flex justify-center pb-4 px-4">
+    <div className="w-full flex justify-center pb-4 px-2">
       {onReorder && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg px-3 py-1.5 border border-primary/20">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg px-3 py-1.5 border border-primary/20 z-50">
           <GripVertical className="w-3 h-3" />
-          <span className="font-semibold">Glissez ou utilisez ← → pour réorganiser</span>
+          <span className="font-semibold hidden sm:inline">Glissez ou utilisez ← → pour réorganiser</span>
+          <span className="font-semibold sm:hidden">← → Réorganiser</span>
           <GripVertical className="w-3 h-3" />
         </div>
       )}
@@ -132,17 +138,18 @@ export const Hand: React.FC<{
         style={{ 
           transform: `scale(${scale})`,
           transformOrigin: 'center bottom',
-          minHeight: '140px',
-          paddingTop: '40px'
+          minHeight: '160px',
+          paddingTop: '50px',
+          maxWidth: '100%'
         }}
       >
         {cards.map((id, index) => {
-          // Calculate fan positioning
+          // Calculate fan positioning with dynamic spacing
           const totalCards = cards.length;
           const centerIndex = (totalCards - 1) / 2;
           const offsetFromCenter = index - centerIndex;
           const rotation = offsetFromCenter * fanSpread;
-          const yOffset = Math.abs(offsetFromCenter) * 8;
+          const yOffset = Math.abs(offsetFromCenter) * 10;
           
           return (
             <div
@@ -169,7 +176,7 @@ export const Hand: React.FC<{
               style={{
                 transform: `rotate(${rotation}deg) translateY(${yOffset}px)`,
                 transformOrigin: `center ${fanRadius}px`,
-                left: `${index * (size === 'sm' ? 30 : size === 'lg' ? 50 : 40)}px`,
+                left: `${index * maxSpacing}px`,
                 zIndex: hoveredIndex === index ? 40 : selected.has(id) ? 30 : 20 - Math.abs(offsetFromCenter)
               }}
             >

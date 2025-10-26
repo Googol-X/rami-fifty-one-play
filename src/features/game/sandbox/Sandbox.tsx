@@ -14,6 +14,7 @@ import { RoundScore } from '@/components/RoundScore';
 import { GameOver } from '@/components/GameOver';
 import { RANK_VALUES } from '@/types/game';
 import { useToast } from '@/hooks/use-toast';
+import { LandscapeOnly } from '@/components/LandscapeOnly';
 
 const P1 = { id: 'p1', displayName: 'Toi' };
 const P2 = { id: 'p2', displayName: 'Bot' };
@@ -364,7 +365,8 @@ export default function Sandbox() {
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-background">
+    <LandscapeOnly>
+      <div className="relative w-full h-screen overflow-hidden bg-background">
       {/* Scoreboard */}
       <Scoreboard
         meldsCount={state.melds.length}
@@ -444,17 +446,19 @@ export default function Sandbox() {
       </div>
 
       {/* Player's hand - WSOP style sticky bottom */}
-      <div className="fixed bottom-[72px] md:bottom-[88px] left-0 right-0 z-30 pointer-events-none">
-        <div className="container mx-auto px-4">
+      <div className="fixed bottom-[60px] md:bottom-[72px] left-0 right-0 z-30 pointer-events-none">
+        <div className="container mx-auto px-2 md:px-4">
           <div className="bg-gradient-to-t from-background via-background/95 to-transparent backdrop-blur-md rounded-t-3xl border-t-2 border-x-2 border-primary/20 shadow-[0_-10px_40px_rgba(0,0,0,0.6)] pointer-events-auto">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-primary/10">
-              <h3 className="text-sm md:text-base font-bold text-primary flex items-center gap-2">
-                <span className="text-xl">🎴</span>
-                Ta main <span className="text-muted-foreground">({me.hand.length})</span>
+            <div className="flex items-center justify-between px-3 md:px-4 py-1.5 md:py-2 border-b border-primary/10">
+              <h3 className="text-xs md:text-base font-bold text-primary flex items-center gap-2">
+                <span className="text-lg md:text-xl">🎴</span>
+                <span className="hidden sm:inline">Ta main</span>
+                <span className="sm:inline md:hidden">Main</span>
+                <span className="text-muted-foreground">({me.hand.length})</span>
               </h3>
-              <div className="flex items-center gap-3 md:gap-6">
-                <div className="hidden md:flex items-center gap-3 bg-secondary/30 rounded-lg px-3 py-1.5 border border-primary/20">
-                  <label className="flex items-center gap-1.5 text-sm font-medium cursor-pointer hover:text-primary transition-colors">
+              <div className="flex items-center gap-2 md:gap-6">
+                <div className="hidden md:flex items-center gap-2 md:gap-3 bg-secondary/30 rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-primary/20">
+                  <label className="flex items-center gap-1 md:gap-1.5 text-xs md:text-sm font-medium cursor-pointer hover:text-primary transition-colors">
                     <input 
                       type="radio" 
                       name="meld" 
@@ -464,7 +468,7 @@ export default function Sandbox() {
                     />
                     <span>Suite</span>
                   </label>
-                  <label className="flex items-center gap-1.5 text-sm font-medium cursor-pointer hover:text-primary transition-colors">
+                  <label className="flex items-center gap-1 md:gap-1.5 text-xs md:text-sm font-medium cursor-pointer hover:text-primary transition-colors">
                     <input 
                       type="radio" 
                       name="meld" 
@@ -475,21 +479,21 @@ export default function Sandbox() {
                     <span>Brelan</span>
                   </label>
                 </div>
-                <div className="flex items-center gap-2 bg-secondary/30 rounded-lg px-3 py-1.5 border border-primary/20">
-                  <label className="text-sm font-medium">🔍</label>
+                <div className="flex items-center gap-1.5 md:gap-2 bg-secondary/30 rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-primary/20">
+                  <label className="text-xs md:text-sm font-medium">🔍</label>
                   <input 
                     type="range" 
-                    min={0.7} 
-                    max={1.3} 
+                    min={0.6} 
+                    max={1.2} 
                     step={0.05} 
                     value={handScale} 
                     onChange={(e)=>setHandScale(parseFloat(e.target.value))}
-                    className="w-20 md:w-28 accent-primary cursor-pointer"
+                    className="w-16 md:w-28 accent-primary cursor-pointer"
                   />
                 </div>
               </div>
             </div>
-            <div className="px-2 py-3">
+            <div className="px-1 md:px-2 py-2 md:py-3">
               <Hand 
                 cards={me.hand} 
                 deck={deck} 
@@ -551,5 +555,6 @@ export default function Sandbox() {
         />
       )}
     </div>
+    </LandscapeOnly>
   );
 }

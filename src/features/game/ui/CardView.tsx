@@ -4,7 +4,7 @@ import type { Card } from "@/types/game";
 import { cardHoverVariants } from './animations';
 
 function suitColor(s: string) {
-  return s === '♥' || s === '♦' ? 'text-red-500' : 'text-foreground';
+  return s === '♥' || s === '♦' ? 'text-red-600' : 'text-gray-900';
 }
 
 export const CardView: React.FC<{
@@ -29,25 +29,22 @@ export const CardView: React.FC<{
       className={`
         ${sizeClasses[size]}
         relative rounded-lg overflow-hidden
-        bg-gradient-to-br from-background to-muted
+        bg-white
         border-2 transition-all duration-300
         ${selected 
           ? 'border-primary shadow-xl shadow-primary/60 -translate-y-3 scale-105' 
-          : 'border-border hover:border-primary/50 hover:shadow-lg'
+          : 'border-gray-300 hover:border-primary/50 hover:shadow-lg shadow-md'
         }
         ${onClick ? 'cursor-pointer active:scale-95' : 'cursor-default'}
       `}
+      style={{
+        boxShadow: selected 
+          ? '0 8px 24px rgba(0,0,0,0.4), 0 0 20px hsl(var(--primary) / 0.6)' 
+          : '0 4px 12px rgba(0,0,0,0.3)'
+      }}
       title={`${card.rank}${card.joker ? ' (Joker)' : card.suit}`}
     >
-      {/* Card shine effect */}
-      <motion.div 
-        className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent"
-        initial={{ opacity: 0 }}
-        whileHover={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      />
-      
-      {/* Shimmer effect when selected */}
+      {/* Gold shimmer for selected cards */}
       {selected && (
         <motion.div
           className="absolute inset-0 opacity-30"
@@ -67,7 +64,7 @@ export const CardView: React.FC<{
       )}
       
       {/* Card content */}
-      <div className="relative w-full h-full flex flex-col items-center justify-center p-2">
+      <div className="relative w-full h-full flex flex-col items-center justify-center p-2 bg-white">
         {card.joker ? (
           <div className="text-center">
             <div className="text-2xl">🃏</div>

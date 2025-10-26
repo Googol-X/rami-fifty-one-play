@@ -18,12 +18,13 @@ export const MeldsBoard: React.FC<MeldsBoardProps> = ({ melds, deck }) => {
     return (
       <motion.div
         key={cardId}
-        className={`relative w-14 h-20 rounded-lg border-2 bg-card flex flex-col items-center justify-center font-bold shadow-xl
-          ${isRed ? 'text-accent border-accent/30' : 'text-card-foreground border-primary/30'}`}
+        className={`relative w-14 h-20 rounded-lg border-2 bg-white flex flex-col items-center justify-center font-bold shadow-xl
+          ${isRed ? 'text-accent border-accent/50' : 'text-gray-800 border-gray-400'}`}
         style={{
           transform: `rotate(${rotation}deg)`,
           marginLeft: index > 0 ? '-8px' : '0',
           zIndex: index,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
         }}
         whileHover={{ 
           scale: 1.1, 
