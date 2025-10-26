@@ -6,9 +6,10 @@ interface GamePileProps {
   discardPile: CardType[];
   onDrawCard: () => void;
   onPickDiscard: () => void;
+  canTakeDiscard?: boolean;
 }
 
-export function GamePile({ drawPile, discardPile, onDrawCard, onPickDiscard }: GamePileProps) {
+export function GamePile({ drawPile, discardPile, onDrawCard, onPickDiscard, canTakeDiscard = true }: GamePileProps) {
   const topDiscard = discardPile[discardPile.length - 1];
   const topDiscardLabel = topDiscard 
     ? `${topDiscard.rank} de ${topDiscard.suit === '♠' ? 'pique' : topDiscard.suit === '♥' ? 'coeur' : topDiscard.suit === '♦' ? 'carreau' : 'trèfle'}`
@@ -56,10 +57,11 @@ export function GamePile({ drawPile, discardPile, onDrawCard, onPickDiscard }: G
         </p>
         <button
           onClick={onPickDiscard}
-          disabled={!topDiscard}
+          disabled={!topDiscard || !canTakeDiscard}
           className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
-          aria-label={`Prendre la carte de défausse: ${topDiscardLabel}`}
+          aria-label={!canTakeDiscard ? 'Action non permise' : `Prendre la carte de défausse: ${topDiscardLabel}`}
           aria-describedby="discard-pile-label"
+          title={!canTakeDiscard && topDiscard ? 'Action non permise selon les règles' : undefined}
         >
           {topDiscard ? (
             <div className="relative">

@@ -33,6 +33,11 @@
   z-index: 50;
 }
 
+.action-bar button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -151,6 +156,28 @@ All colors MUST be HSL.
       radial-gradient(ellipse at 50% 50%, hsl(140 25% 12% / 0.4) 0%, transparent 60%),
       radial-gradient(ellipse at 20% 80%, hsl(45 100% 51% / 0.03) 0%, transparent 50%),
       hsl(var(--background));
+  }
+
+  /* Player hand scroll for mobile */
+  .player-hand-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+  }
+
+  .player-hand-scroll::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .player-hand-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .player-hand-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.3);
+    border-radius: 2px;
   }
 
   /* Fan layout for cards */
