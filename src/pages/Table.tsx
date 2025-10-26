@@ -24,6 +24,7 @@ function TableContent() {
   const [roundNumber, setRoundNumber] = useState(1);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('medium');
   const [isBotThinking, setIsBotThinking] = useState(false);
+  const [handScale, setHandScale] = useState(0.9); // desktop default
   
   // Game score tracking
   const [playerTotal, setPlayerTotal] = useState(0);
@@ -379,9 +380,23 @@ function TableContent() {
       {/* Player's hand - sticky at bottom above action bar */}
       <div className="fixed bottom-16 md:bottom-24 left-0 right-0 z-30 bg-gradient-to-t from-background via-background to-transparent pt-2 md:pt-6 pb-2 md:pb-4">
         <div className="container mx-auto px-2 md:px-4">
-          <h3 className="text-xs md:text-sm font-semibold text-muted-foreground mb-1 md:mb-2">
-            Ta main ({me.hand.length} cartes)
-          </h3>
+          <div className="flex items-center justify-between mb-1 md:mb-2">
+            <h3 className="text-xs md:text-sm font-semibold text-muted-foreground">
+              Ta main ({me.hand.length} cartes)
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs opacity-80">Zoom</span>
+              <input
+                type="range"
+                min={0.6}
+                max={1.2}
+                step={0.05}
+                value={handScale}
+                onChange={(e) => setHandScale(parseFloat(e.target.value))}
+                className="w-16 md:w-28 accent-primary cursor-pointer"
+              />
+            </div>
+          </div>
           <Hand 
             cards={me.hand} 
             deck={deck} 
@@ -394,7 +409,7 @@ function TableContent() {
             spread={72}
             tilt={-8}
             overlap={46}
-            scale={0.9}
+            scale={handScale}
             size="md" 
           />
         </div>
