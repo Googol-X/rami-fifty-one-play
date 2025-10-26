@@ -7,9 +7,8 @@ import { Table } from '../ui/Table';
 import { PlayersArea } from '../ui/PlayersArea';
 import { ActionBar } from '../ui/ActionBar';
 import { Scoreboard } from '../ui/Scoreboard';
+import { BotDifficulty as BotDifficultyPanel } from '../ui/BotDifficulty';
 import { AdvancedBotAI, BotDifficulty } from '@/utils/advancedBotAI';
-import { Button } from '@/components/ui/button';
-import { Brain } from 'lucide-react';
 import { RoundScore } from '@/components/RoundScore';
 import { GameOver } from '@/components/GameOver';
 import { RANK_VALUES } from '@/types/game';
@@ -376,51 +375,9 @@ export default function Sandbox() {
         onQuit={() => window.location.href = '/'}
       />
 
-      {/* Bot difficulty selector - masqué après sélection */}
+      {/* Bot difficulty selector */}
       {showBotPanel && (
-        <motion.div 
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 100 }}
-          className="fixed top-20 right-4 z-30 bg-gradient-to-br from-secondary to-secondary/80 backdrop-blur-xl border-2 border-primary/30 rounded-xl p-4 shadow-2xl"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <Brain className="w-5 h-5 text-primary" />
-            <span className="text-sm font-bold text-primary">Niveau Bot</span>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Button
-              size="sm"
-              variant={botDifficulty === 'easy' ? 'default' : 'outline'}
-              onClick={() => onDifficultySelected('easy')}
-              className="text-xs h-8 font-semibold justify-start"
-            >
-              🟢 Facile
-            </Button>
-            <Button
-              size="sm"
-              variant={botDifficulty === 'medium' ? 'default' : 'outline'}
-              onClick={() => onDifficultySelected('medium')}
-              className="text-xs h-8 font-semibold justify-start"
-            >
-              🟡 Moyen
-            </Button>
-            <Button
-              size="sm"
-              variant={botDifficulty === 'hard' ? 'default' : 'outline'}
-              onClick={() => onDifficultySelected('hard')}
-              className="text-xs h-8 font-semibold justify-start"
-            >
-              🔴 Difficile
-            </Button>
-          </div>
-          <button
-            onClick={() => setShowBotPanel(false)}
-            className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
-          >
-            ✕
-          </button>
-        </motion.div>
+        <BotDifficultyPanel onSelect={onDifficultySelected} />
       )}
 
       {/* Main game table */}
