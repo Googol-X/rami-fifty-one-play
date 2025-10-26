@@ -24,6 +24,14 @@ export const Table: React.FC<TableProps> = ({
   onDrawStock,
   onDrawDiscard 
 }) => {
+  const [W, setW] = React.useState(window.innerWidth);
+  
+  React.useEffect(() => {
+    const handleResize = () => setW(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
   const players = state.players;
   const currentPlayerIndex = players.findIndex(p => p.id === currentPlayerId);
   
@@ -104,20 +112,20 @@ export const Table: React.FC<TableProps> = ({
 
         return (
           <>
-            {/* HAUT (centre) */}
+            {/* Haut */}
             {opp1 && (
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
                 <Hand
+                  faceDown
                   cards={Array(Math.min(13, opp1.hand.length)).fill('face')}
                   deck={deck}
                   selected={new Set()}
                   onToggle={() => {}}
-                  radius={220}
-                  spread={52}
+                  radius={W < 740 ? 176 : 200}
+                  spread={46}
                   tilt={6}
-                  overlap={56}
-                  scale={0.85}
-                  faceDown
+                  overlap={64}
+                  scale={0.82}
                 />
                 <PlayerAvatar
                   player={opp1}
@@ -128,20 +136,20 @@ export const Table: React.FC<TableProps> = ({
               </div>
             )}
 
-            {/* GAUCHE */}
+            {/* Gauche */}
             {opp2 && (
-              <div className="absolute left-[-24px] top-1/2 -translate-y-1/2 -rotate-90 z-10">
+              <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 -rotate-90 z-20">
                 <Hand
+                  faceDown
                   cards={Array(Math.min(13, opp2.hand.length)).fill('face')}
                   deck={deck}
                   selected={new Set()}
                   onToggle={() => {}}
-                  radius={210}
-                  spread={48}
+                  radius={W < 740 ? 168 : 190}
+                  spread={44}
                   tilt={6}
-                  overlap={56}
-                  scale={0.85}
-                  faceDown
+                  overlap={64}
+                  scale={0.8}
                 />
                 <div className="rotate-90 origin-left">
                   <PlayerAvatar
@@ -154,20 +162,20 @@ export const Table: React.FC<TableProps> = ({
               </div>
             )}
 
-            {/* DROITE */}
+            {/* Droite */}
             {opp3 && (
-              <div className="absolute right-[-24px] top-1/2 -translate-y-1/2 rotate-90 z-10">
+              <div className="absolute right-[-16px] top-1/2 -translate-y-1/2 rotate-90 z-20">
                 <Hand
+                  faceDown
                   cards={Array(Math.min(13, opp3.hand.length)).fill('face')}
                   deck={deck}
                   selected={new Set()}
                   onToggle={() => {}}
-                  radius={210}
-                  spread={48}
+                  radius={W < 740 ? 168 : 190}
+                  spread={44}
                   tilt={6}
-                  overlap={56}
-                  scale={0.85}
-                  faceDown
+                  overlap={64}
+                  scale={0.8}
                 />
                 <div className="-rotate-90 origin-right">
                   <PlayerAvatar
