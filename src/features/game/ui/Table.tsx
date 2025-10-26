@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { TableState } from '@/types/game';
 import { PlayerAvatar } from './PlayerAvatar';
 import { MeldsBoard } from './MeldsBoard';
+import { Hand } from './Hand';
 import { confettiVariants, winnerAppearVariants } from './animations';
 import { audioService } from '@/utils/audioService';
 
@@ -121,25 +122,62 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
       {players.map((player, index) => {
         const position = getPlayerPosition(index);
         const isActive = player.id === state.activePlayer;
+        const isCurrentPlayer = player.id === currentPlayerId;
         
-        const positionStyles = {
-          bottom: 'bottom-4 left-1/2 -translate-x-1/2',
-          top: 'top-4 left-1/2 -translate-x-1/2',
-          left: 'left-4 top-1/2 -translate-y-1/2',
-          right: 'right-4 top-1/2 -translate-y-1/2'
+        // Skip rendering hand for current player (shown at bottom of screen)
+        if (isCurrentPlayer) return null;
+        
+        // Position-specific configurations
+        const configs = {
+          top: {
+            containerClass: 'top-[-40px] left-1/2 -translate-x-1/2',
+            handProps: { radius: 260, spread: 60, tilt: 6, overlap: 52, scale: 0.85 },
+            rotation: 0,
+            avatarClass: ''
+          },
+          left: {
+            containerClass: 'left-[-30px] top-1/2 -translate-y-1/2',
+            handProps: { radius: 240, spread: 56, tilt: -6, overlap: 52, scale: 0.85 },
+            rotation: -90,
+            avatarClass: 'rotate-90'
+          },
+          right: {
+            containerClass: 'right-[-30px] top-1/2 -translate-y-1/2',
+            handProps: { radius: 240, spread: 56, tilt: -6, overlap: 52, scale: 0.85 },
+            rotation: 90,
+            avatarClass: '-rotate-90'
+          }
         };
+        
+        const config = configs[position];
+        if (!config) return null;
+
+        // Create fake card array for face-down display
+        const fakeCards = Array(Math.min(13, player.hand.length)).fill('face');
 
         return (
           <div
             key={player.id}
-            className={`absolute ${positionStyles[position]} z-10`}
+            className={`absolute ${config.containerClass} z-10`}
           >
-            <PlayerAvatar
-              player={player}
-              isActive={isActive}
-              position={position}
-              cardsCount={player.hand.length}
-            />
+            <div style={{ transform: `rotate(${config.rotation}deg)` }}>
+              <Hand
+                cards={fakeCards}
+                deck={deck}
+                selected={new Set()}
+                onToggle={() => {}}
+                {...config.handProps}
+                faceDown
+              />
+              <div className={config.avatarClass}>
+                <PlayerAvatar
+                  player={player}
+                  isActive={isActive}
+                  position={position}
+                  cardsCount={player.hand.length}
+                />
+              </div>
+            </div>
           </div>
         );
       })}
