@@ -34,7 +34,8 @@ export default function Sandbox() {
   const [roundNumber, setRoundNumber] = React.useState(1);
   const [botDifficulty, setBotDifficulty] = React.useState<BotDifficulty>('medium');
   const [isBotThinking, setIsBotThinking] = React.useState(false);
-  const [showDifficultySelector, setShowDifficultySelector] = React.useState(true);
+  const [showBotPanel, setShowBotPanel] = React.useState(true);
+  const [botStarted, setBotStarted] = React.useState(false);
   
   // Game score tracking
   const [playerTotal, setPlayerTotal] = React.useState(0);
@@ -95,22 +96,22 @@ export default function Sandbox() {
     }
   }, [state, playerTotal, botTotal, showRoundScore, showGameOver, deck]);
 
-  // Mettre à jour la difficulté du bot et masquer le sélecteur
+  // Update bot difficulty
   React.useEffect(() => {
-    botAI.setDifficulty(botDifficulty);
-  }, [botDifficulty]);
+    if (botStarted) {
+      botAI.setDifficulty(botDifficulty);
+    }
+  }, [botDifficulty, botStarted]);
   
-  const handleBotDifficultyChange = (difficulty: BotDifficulty) => {
-    setBotDifficulty(difficulty);
-    // Masquer le sélecteur après 2 secondes
-    setTimeout(() => {
-      setShowDifficultySelector(false);
-    }, 2000);
+  const onDifficultySelected = (level: BotDifficulty) => {
+    setBotDifficulty(level);
+    setShowBotPanel(false);
+    setBotStarted(true);
   };
 
   // Bot AI automatic turn
   React.useEffect(() => {
-    if (!state || state.activePlayer !== P2.id || isBotThinking || showRoundScore || showGameOver) return;
+    if (!state || !botStarted || state.activePlayer !== P2.id || isBotThinking || showRoundScore || showGameOver) return;
     
     const bot = state.players.find(p => p.id === P2.id);
     if (!bot) return;
@@ -207,7 +208,7 @@ export default function Sandbox() {
     };
 
     executeBot();
-  }, [state, dispatch, deck, botDifficulty, isBotThinking, showRoundScore, showGameOver, botAI]);
+  }, [state, dispatch, deck, botDifficulty, isBotThinking, showRoundScore, showGameOver, botAI, botStarted]);
 
   if (!state) return <div className="p-4">Initialisation…</div>;
 
@@ -376,7 +377,7 @@ export default function Sandbox() {
       />
 
       {/* Bot difficulty selector - masqué après sélection */}
-      {showDifficultySelector && (
+      {showBotPanel && (
         <motion.div 
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
@@ -391,33 +392,30 @@ export default function Sandbox() {
             <Button
               size="sm"
               variant={botDifficulty === 'easy' ? 'default' : 'outline'}
-              onClick={() => handleBotDifficultyChange('easy')}
+              onClick={() => onDifficultySelected('easy')}
               className="text-xs h-8 font-semibold justify-start"
-              disabled={!isMyTurn}
             >
               🟢 Facile
             </Button>
             <Button
               size="sm"
               variant={botDifficulty === 'medium' ? 'default' : 'outline'}
-              onClick={() => handleBotDifficultyChange('medium')}
+              onClick={() => onDifficultySelected('medium')}
               className="text-xs h-8 font-semibold justify-start"
-              disabled={!isMyTurn}
             >
               🟡 Moyen
             </Button>
             <Button
               size="sm"
               variant={botDifficulty === 'hard' ? 'default' : 'outline'}
-              onClick={() => handleBotDifficultyChange('hard')}
+              onClick={() => onDifficultySelected('hard')}
               className="text-xs h-8 font-semibold justify-start"
-              disabled={!isMyTurn}
             >
               🔴 Difficile
             </Button>
           </div>
           <button
-            onClick={() => setShowDifficultySelector(false)}
+            onClick={() => setShowBotPanel(false)}
             className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
           >
             ✕
