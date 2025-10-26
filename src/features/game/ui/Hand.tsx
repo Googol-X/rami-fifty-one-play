@@ -113,42 +113,66 @@ export const Hand: React.FC<{
     setDropTarget(null);
   };
 
+  // Calculate fan spread for cards
+  const fanSpread = Math.min(15, 120 / Math.max(cards.length - 1, 1));
+  const fanRadius = 800; // Radius for the arc
+  
   return (
-    <div className="w-full overflow-x-auto pb-4">
+    <div className="w-full flex justify-center pb-4 px-4">
       {onReorder && (
-        <div className="flex items-center justify-center gap-2 mb-3 text-xs text-muted-foreground bg-background/50 rounded-lg p-2">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg px-3 py-1.5 border border-primary/20">
           <GripVertical className="w-3 h-3" />
-          <span className="font-medium">Utilisez les flèches ← → ou glissez-déposez pour réorganiser</span>
+          <span className="font-semibold">Glissez ou utilisez ← → pour réorganiser</span>
           <GripVertical className="w-3 h-3" />
         </div>
       )}
       <motion.div 
         ref={containerRef}
-        className="inline-flex gap-2 px-2"
-        style={{ transform: `scale(${scale})`, transformOrigin: 'left center' }}
+        className="relative flex items-end justify-center"
+        style={{ 
+          transform: `scale(${scale})`,
+          transformOrigin: 'center bottom',
+          minHeight: '140px',
+          paddingTop: '40px'
+        }}
       >
-        {cards.map((id, index) => (
-          <div
-            key={id}
-            data-card-index={index}
-            draggable={!!onReorder}
-            onDragStart={(e) => handleDragStart(e, index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDrop={(e) => handleDrop(e, index)}
-            onDragEnd={handleDragEnd}
-            onTouchStart={(e) => handleTouchStart(e, index)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onMouseEnter={() => setHoveredIndex(index)}
-            onMouseLeave={() => setHoveredIndex(null)}
-            title={onReorder ? "Glissez pour déplacer cette carte" : undefined}
-            className={cn(
-              "relative transition-all duration-200 group",
-              onReorder && "cursor-grab active:cursor-grabbing",
-              dragIndex === index && "opacity-30 scale-90 cursor-grabbing z-50",
-              dropTarget === index && dragIndex !== index && "ml-6 scale-105"
-            )}
-          >
+        {cards.map((id, index) => {
+          // Calculate fan positioning
+          const totalCards = cards.length;
+          const centerIndex = (totalCards - 1) / 2;
+          const offsetFromCenter = index - centerIndex;
+          const rotation = offsetFromCenter * fanSpread;
+          const yOffset = Math.abs(offsetFromCenter) * 8;
+          
+          return (
+            <div
+              key={id}
+              data-card-index={index}
+              draggable={!!onReorder}
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+              onTouchStart={(e) => handleTouchStart(e, index)}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              title={onReorder ? "Glissez pour déplacer cette carte" : undefined}
+              className={cn(
+                "absolute transition-all duration-300 group",
+                onReorder && "cursor-grab active:cursor-grabbing",
+                dragIndex === index && "opacity-30 scale-90 cursor-grabbing z-50",
+                dropTarget === index && dragIndex !== index && "scale-110",
+                hoveredIndex === index && "z-40 -translate-y-12"
+              )}
+              style={{
+                transform: `rotate(${rotation}deg) translateY(${yOffset}px)`,
+                transformOrigin: `center ${fanRadius}px`,
+                left: `${index * (size === 'sm' ? 30 : size === 'lg' ? 50 : 40)}px`,
+                zIndex: hoveredIndex === index ? 40 : selected.has(id) ? 30 : 20 - Math.abs(offsetFromCenter)
+              }}
+            >
             <motion.div
               custom={index}
               variants={cardDealVariants}
@@ -212,7 +236,8 @@ export const Hand: React.FC<{
               />
             </motion.div>
           </div>
-        ))}
+          );
+        })}
       </motion.div>
     </div>
   );

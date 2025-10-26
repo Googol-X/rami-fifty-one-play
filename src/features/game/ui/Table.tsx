@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { TableState, Meld } from '@/types/game';
+import type { TableState } from '@/types/game';
 import { PlayerAvatar } from './PlayerAvatar';
-import { meldPlacementVariants, confettiVariants, winnerAppearVariants } from './animations';
+import { MeldsBoard } from './MeldsBoard';
+import { confettiVariants, winnerAppearVariants } from './animations';
 import { audioService } from '@/utils/audioService';
 
 interface TableProps {
@@ -29,90 +30,65 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
     return 'right';
   };
 
-  const renderMeld = (meld: Meld) => (
-    <motion.div
-      key={meld.id}
-      variants={meldPlacementVariants}
-      initial="hidden"
-      animate="visible"
-      whileHover={{ scale: 1.05, boxShadow: "0 8px 30px rgba(0,0,0,0.3)" }}
-      className="flex gap-1 p-2 rounded-lg bg-background/50 backdrop-blur-sm border border-primary/20 hover:border-primary/40 transition-colors"
-    >
-      {meld.cards.map(cardId => {
-        const card = deck[cardId];
-        if (!card) return null;
-        return (
-          <div
-            key={cardId}
-            className="w-12 h-16 rounded border border-border bg-background flex items-center justify-center text-xs"
-          >
-            {card.joker ? '🃏' : `${card.rank}${card.suit}`}
-          </div>
-        );
-      })}
-      <div className="flex items-center justify-center text-xs text-primary font-bold ml-1">
-        {meld.points}
-      </div>
-    </motion.div>
-  );
 
   return (
-    <div className="relative w-full h-full min-h-[400px] md:min-h-[600px] bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-900">
-      {/* Table felt effect */}
-      <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
-        backgroundSize: '32px 32px'
+    <div className="relative w-full h-full min-h-[400px] md:min-h-[600px] bg-gradient-to-br from-[hsl(140,20%,8%)] via-[hsl(140,25%,6%)] to-[hsl(140,20%,8%)]">
+      {/* Poker table texture */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: `
+          repeating-linear-gradient(0deg, transparent, transparent 2px, currentColor 2px, currentColor 4px),
+          repeating-linear-gradient(90deg, transparent, transparent 2px, currentColor 2px, currentColor 4px)
+        `,
+        backgroundSize: '30px 30px'
       }} />
 
-      {/* Center table area */}
-      <div className="absolute inset-0 flex items-center justify-center px-2 md:px-0">
-        <div className="relative w-[95%] md:w-[80%] max-w-4xl aspect-[16/10] rounded-[40%] bg-gradient-to-br from-emerald-700 to-emerald-800 border-4 md:border-8 border-amber-900/50 shadow-2xl">
-          {/* Inner table glow */}
-          <div className="absolute inset-2 md:inset-4 rounded-[35%] bg-gradient-to-br from-emerald-600/30 to-transparent" />
+      {/* Center poker table */}
+      <div className="absolute inset-0 flex items-center justify-center px-2 md:px-4">
+        <div className="relative w-[96%] md:w-[85%] max-w-6xl aspect-[16/9] rounded-[45%] shadow-2xl overflow-hidden">
+          {/* Table surface - dark felt with subtle gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(140,25%,10%)] via-[hsl(140,20%,7%)] to-[hsl(140,25%,9%)]" />
           
-          {/* Melds display in center */}
-          <div className="absolute inset-0 flex items-center justify-center p-2 md:p-8">
-            <div className="flex flex-wrap gap-2 md:gap-3 justify-center items-center max-h-full overflow-y-auto">
-              {state.melds.length === 0 ? (
-                <div className="text-emerald-200/50 text-sm md:text-lg font-semibold">
-                  Aucune combinaison posée
-                </div>
-              ) : (
-                state.melds.map(renderMeld)
-              )}
-            </div>
-          </div>
+          {/* Elegant border */}
+          <div className="absolute inset-0 rounded-[45%] border-[6px] md:border-[10px] border-primary/80 shadow-[inset_0_0_30px_rgba(0,0,0,0.5)]" />
+          
+          {/* Inner glow */}
+          <div className="absolute inset-6 md:inset-10 rounded-[40%] bg-gradient-radial from-primary/5 via-transparent to-transparent" />
+          
+          {/* Melds display board */}
+          <MeldsBoard melds={state.melds} deck={deck} />
 
-          {/* Discard pile indicator */}
+          {/* Discard pile - positioned on table edge */}
           {state.piles.discard.length > 0 && (
-            <div className="absolute bottom-2 md:bottom-8 right-2 md:right-8">
+            <div className="absolute bottom-4 md:bottom-12 right-4 md:right-12 z-20">
               <motion.div 
                 className="relative"
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ duration: 0.5, ease: "backOut" }}
               >
-                <div className="w-12 h-16 md:w-16 md:h-22 rounded-lg border-2 border-amber-500 bg-background/90 flex items-center justify-center shadow-lg">
-                  <div className="text-center">
-                    <div className="text-[10px] md:text-xs text-muted-foreground mb-1">Défausse</div>
-                    {deck[state.piles.discard[state.piles.discard.length - 1]] && (
-                      <div className="text-sm font-bold">
-                        {deck[state.piles.discard[state.piles.discard.length - 1]].joker 
-                          ? '🃏' 
-                          : `${deck[state.piles.discard[state.piles.discard.length - 1]].rank}${deck[state.piles.discard[state.piles.discard.length - 1]].suit}`
-                        }
-                      </div>
-                    )}
-                  </div>
+                <div className="w-16 h-24 md:w-20 md:h-28 rounded-xl border-3 border-accent bg-card flex flex-col items-center justify-center shadow-2xl">
+                  <div className="text-[9px] md:text-xs text-muted-foreground mb-1 font-bold uppercase tracking-wider">Défausse</div>
+                  {deck[state.piles.discard[state.piles.discard.length - 1]] && (() => {
+                    const card = deck[state.piles.discard[state.piles.discard.length - 1]];
+                    const isRed = card.suit === '♥' || card.suit === '♦';
+                    return card.joker ? (
+                      <span className="text-3xl">🃏</span>
+                    ) : (
+                      <>
+                        <span className={`text-sm md:text-base font-bold ${isRed ? 'text-accent' : 'text-card-foreground'}`}>{card.rank}</span>
+                        <span className={`text-2xl md:text-3xl ${isRed ? 'text-accent' : 'text-card-foreground'}`}>{card.suit}</span>
+                      </>
+                    );
+                  })()}
                 </div>
                 <motion.div
-                  className="absolute -inset-1 rounded-lg border-2 border-amber-500"
+                  className="absolute -inset-1 rounded-xl border-2 border-accent/60"
                   animate={{
-                    opacity: [0.3, 0.8, 0.3],
-                    scale: [1, 1.1, 1]
+                    opacity: [0.4, 1, 0.4],
+                    scale: [1, 1.08, 1]
                   }}
                   transition={{
-                    duration: 1.5,
+                    duration: 1.8,
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
@@ -121,19 +97,21 @@ export const Table: React.FC<TableProps> = ({ state, deck, currentPlayerId }) =>
             </div>
           )}
 
-          {/* Draw pile indicator */}
-          <div className="absolute bottom-2 md:bottom-8 left-2 md:left-8">
+          {/* Draw pile - positioned on table edge */}
+          <div className="absolute bottom-4 md:bottom-12 left-4 md:left-12 z-20">
             <motion.div 
-              className="w-12 h-16 md:w-16 md:h-22 rounded-lg border-2 border-primary bg-primary/20 flex items-center justify-center shadow-lg"
-              whileHover={{ scale: 1.1, boxShadow: "0 0 20px hsl(var(--primary) / 0.5)" }}
-              transition={{ duration: 0.2 }}
+              className="w-16 h-24 md:w-20 md:h-28 rounded-xl border-3 border-primary bg-gradient-to-br from-primary/30 to-primary/10 flex flex-col items-center justify-center shadow-2xl backdrop-blur-sm"
+              whileHover={{ 
+                scale: 1.08, 
+                boxShadow: "0 0 30px hsl(var(--primary) / 0.6)",
+                transition: { duration: 0.2 }
+              }}
             >
-              <div className="text-center">
-                <div className="text-[10px] md:text-xs text-primary-foreground mb-1">Pioche</div>
-                <div className="text-sm md:text-lg font-bold text-primary-foreground">
-                  {state.piles.draw.length}
-                </div>
+              <div className="text-[9px] md:text-xs text-primary font-bold mb-1 uppercase tracking-wider">Pioche</div>
+              <div className="text-2xl md:text-4xl font-bold text-primary drop-shadow-lg">
+                {state.piles.draw.length}
               </div>
+              <div className="text-[8px] md:text-xs text-primary/70 mt-1">cartes</div>
             </motion.div>
           </div>
         </div>

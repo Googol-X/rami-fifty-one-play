@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '@/contexts/GameContext';
 import type { Move } from '@/types/game';
 import { Hand } from '../ui/Hand';
@@ -32,6 +33,7 @@ export default function Sandbox() {
   const [roundNumber, setRoundNumber] = React.useState(1);
   const [botDifficulty, setBotDifficulty] = React.useState<BotDifficulty>('medium');
   const [isBotThinking, setIsBotThinking] = React.useState(false);
+  const [showDifficultySelector, setShowDifficultySelector] = React.useState(true);
   
   // Game score tracking
   const [playerTotal, setPlayerTotal] = React.useState(0);
@@ -92,10 +94,18 @@ export default function Sandbox() {
     }
   }, [state, playerTotal, botTotal, showRoundScore, showGameOver, deck]);
 
-  // Mettre à jour la difficulté du bot
+  // Mettre à jour la difficulté du bot et masquer le sélecteur
   React.useEffect(() => {
     botAI.setDifficulty(botDifficulty);
   }, [botDifficulty]);
+  
+  const handleBotDifficultyChange = (difficulty: BotDifficulty) => {
+    setBotDifficulty(difficulty);
+    // Masquer le sélecteur après 2 secondes
+    setTimeout(() => {
+      setShowDifficultySelector(false);
+    }, 2000);
+  };
 
   // Bot AI automatic turn
   React.useEffect(() => {
@@ -363,42 +373,55 @@ export default function Sandbox() {
         onQuit={() => window.location.href = '/'}
       />
 
-      {/* Bot difficulty selector */}
-      <div className="fixed top-20 right-4 z-30 bg-background/95 backdrop-blur-lg border border-border rounded-lg p-3 shadow-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <Brain className="w-4 h-4 text-primary" />
-          <span className="text-xs font-semibold text-foreground">Difficulté Bot</span>
-        </div>
-        <div className="flex gap-1">
-          <Button
-            size="sm"
-            variant={botDifficulty === 'easy' ? 'default' : 'outline'}
-            onClick={() => setBotDifficulty('easy')}
-            className="text-xs h-7 px-2"
-            disabled={!isMyTurn}
+      {/* Bot difficulty selector - masqué après sélection */}
+      {showDifficultySelector && (
+        <motion.div 
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 100 }}
+          className="fixed top-20 right-4 z-30 bg-gradient-to-br from-secondary to-secondary/80 backdrop-blur-xl border-2 border-primary/30 rounded-xl p-4 shadow-2xl"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Brain className="w-5 h-5 text-primary" />
+            <span className="text-sm font-bold text-primary">Niveau Bot</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button
+              size="sm"
+              variant={botDifficulty === 'easy' ? 'default' : 'outline'}
+              onClick={() => handleBotDifficultyChange('easy')}
+              className="text-xs h-8 font-semibold justify-start"
+              disabled={!isMyTurn}
+            >
+              🟢 Facile
+            </Button>
+            <Button
+              size="sm"
+              variant={botDifficulty === 'medium' ? 'default' : 'outline'}
+              onClick={() => handleBotDifficultyChange('medium')}
+              className="text-xs h-8 font-semibold justify-start"
+              disabled={!isMyTurn}
+            >
+              🟡 Moyen
+            </Button>
+            <Button
+              size="sm"
+              variant={botDifficulty === 'hard' ? 'default' : 'outline'}
+              onClick={() => handleBotDifficultyChange('hard')}
+              className="text-xs h-8 font-semibold justify-start"
+              disabled={!isMyTurn}
+            >
+              🔴 Difficile
+            </Button>
+          </div>
+          <button
+            onClick={() => setShowDifficultySelector(false)}
+            className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
           >
-            Facile
-          </Button>
-          <Button
-            size="sm"
-            variant={botDifficulty === 'medium' ? 'default' : 'outline'}
-            onClick={() => setBotDifficulty('medium')}
-            className="text-xs h-7 px-2"
-            disabled={!isMyTurn}
-          >
-            Moyen
-          </Button>
-          <Button
-            size="sm"
-            variant={botDifficulty === 'hard' ? 'default' : 'outline'}
-            onClick={() => setBotDifficulty('hard')}
-            className="text-xs h-7 px-2"
-            disabled={!isMyTurn}
-          >
-            Difficile
-          </Button>
-        </div>
-      </div>
+            ✕
+          </button>
+        </motion.div>
+      )}
 
       {/* Main game table */}
       <div className="pt-16 h-full flex flex-col">
@@ -420,59 +443,66 @@ export default function Sandbox() {
         />
       </div>
 
-      {/* Player's hand - sticky at bottom above action bar */}
-      <div className="fixed bottom-16 md:bottom-24 left-0 right-0 z-30 bg-gradient-to-t from-background via-background to-background pt-2 md:pt-6 pb-2 md:pb-4">
-        <div className="container mx-auto px-2 md:px-4">
-          <div className="flex items-center justify-between mb-1 md:mb-2">
-            <h3 className="text-xs md:text-sm font-semibold text-muted-foreground">
-              Ta main ({me.hand.length} cartes)
-            </h3>
-            <div className="flex items-center gap-2 md:gap-4">
-              <div className="hidden md:flex items-center gap-2">
-                <label className="flex items-center gap-1 text-sm">
+      {/* Player's hand - WSOP style sticky bottom */}
+      <div className="fixed bottom-[72px] md:bottom-[88px] left-0 right-0 z-30 pointer-events-none">
+        <div className="container mx-auto px-4">
+          <div className="bg-gradient-to-t from-background via-background/95 to-transparent backdrop-blur-md rounded-t-3xl border-t-2 border-x-2 border-primary/20 shadow-[0_-10px_40px_rgba(0,0,0,0.6)] pointer-events-auto">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-primary/10">
+              <h3 className="text-sm md:text-base font-bold text-primary flex items-center gap-2">
+                <span className="text-xl">🎴</span>
+                Ta main <span className="text-muted-foreground">({me.hand.length})</span>
+              </h3>
+              <div className="flex items-center gap-3 md:gap-6">
+                <div className="hidden md:flex items-center gap-3 bg-secondary/30 rounded-lg px-3 py-1.5 border border-primary/20">
+                  <label className="flex items-center gap-1.5 text-sm font-medium cursor-pointer hover:text-primary transition-colors">
+                    <input 
+                      type="radio" 
+                      name="meld" 
+                      checked={meldKind==='run'} 
+                      onChange={()=>setMeldKind('run')}
+                      className="accent-primary" 
+                    />
+                    <span>Suite</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 text-sm font-medium cursor-pointer hover:text-primary transition-colors">
+                    <input 
+                      type="radio" 
+                      name="meld" 
+                      checked={meldKind==='set'} 
+                      onChange={()=>setMeldKind('set')}
+                      className="accent-primary" 
+                    />
+                    <span>Brelan</span>
+                  </label>
+                </div>
+                <div className="flex items-center gap-2 bg-secondary/30 rounded-lg px-3 py-1.5 border border-primary/20">
+                  <label className="text-sm font-medium">🔍</label>
                   <input 
-                    type="radio" 
-                    name="meld" 
-                    checked={meldKind==='run'} 
-                    onChange={()=>setMeldKind('run')} 
+                    type="range" 
+                    min={0.7} 
+                    max={1.3} 
+                    step={0.05} 
+                    value={handScale} 
+                    onChange={(e)=>setHandScale(parseFloat(e.target.value))}
+                    className="w-20 md:w-28 accent-primary cursor-pointer"
                   />
-                  <span>Suite</span>
-                </label>
-                <label className="flex items-center gap-1 text-sm">
-                  <input 
-                    type="radio" 
-                    name="meld" 
-                    checked={meldKind==='set'} 
-                    onChange={()=>setMeldKind('set')} 
-                  />
-                  <span>Brelan</span>
-                </label>
-              </div>
-              <div className="hidden md:flex items-center gap-2">
-                <label className="text-sm">Zoom</label>
-                <input 
-                  type="range" 
-                  min={0.8} 
-                  max={1.2} 
-                  step={0.05} 
-                  value={handScale} 
-                  onChange={(e)=>setHandScale(parseFloat(e.target.value))}
-                  className="w-24"
-                />
+                </div>
               </div>
             </div>
+            <div className="px-2 py-3">
+              <Hand 
+                cards={me.hand} 
+                deck={deck} 
+                selected={selected} 
+                onToggle={toggle}
+                onReorder={(newCards) => {
+                  reorderHand(P1.id, newCards);
+                }}
+                size="md" 
+                scale={handScale} 
+              />
+            </div>
           </div>
-          <Hand 
-            cards={me.hand} 
-            deck={deck} 
-            selected={selected} 
-            onToggle={toggle}
-            onReorder={(newCards) => {
-              reorderHand(P1.id, newCards);
-            }}
-            size="md" 
-            scale={handScale} 
-          />
         </div>
       </div>
 
