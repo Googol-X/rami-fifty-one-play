@@ -217,53 +217,36 @@ All colors MUST be HSL.
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   }
 
-  /* Orientation Guard - Portrait overlay */
-  .portrait-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: hsl(var(--background));
-    backdrop-filter: blur(20px);
-    align-items: center;
-    justify-content: center;
-  }
-
-  .portrait-box {
-    text-align: center;
-    padding: 2rem;
-    max-width: 90%;
-  }
-
-  .portrait-icon {
-    font-size: 4rem;
-    margin-bottom: 1.5rem;
-    animation: rotate-hint 2s ease-in-out infinite;
-  }
-
-  .portrait-msg {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: hsl(var(--primary));
-    line-height: 1.5;
-  }
-
-  @keyframes rotate-hint {
-    0%, 100% {
-      transform: rotate(0deg);
-    }
-    25% {
-      transform: rotate(-15deg);
-    }
-    75% {
-      transform: rotate(15deg);
+  /* Orientation Guard */
+  @media (orientation: landscape) {
+    .portrait-overlay { 
+      display: none; 
     }
   }
 
-  /* Show overlay only on mobile in portrait mode */
-  @media (max-width: 768px) and (orientation: portrait) {
+  @media (orientation: portrait) {
     .portrait-overlay {
-      display: flex;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+    }
+
+    .portrait-overlay .portrait-box {
+      text-align: center;
+    }
+
+    .portrait-overlay .portrait-icon {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .portrait-overlay .portrait-msg {
+      font-size: 1.1rem;
+      opacity: 0.9;
     }
   }
 }
