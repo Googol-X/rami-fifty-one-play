@@ -21,17 +21,30 @@ export const PlayersArea: React.FC<PlayersAreaProps> = ({
 }) => {
   const players = state.players;
 
-  const renderCard = (cardId: string) => {
+  const renderCard = (cardId: string, index: number, total: number) => {
     const card = deck[cardId];
     if (!card) return null;
     
     const isRed = card.suit === '♥' || card.suit === '♦';
     
+    // Calculate fan effect
+    const maxRotation = 15; // degrees
+    const rotation = total > 1 
+      ? (index - (total - 1) / 2) * (maxRotation / Math.max(total - 1, 1))
+      : 0;
+    
+    const translateY = Math.abs(rotation) * 0.5; // Slight vertical curve
+    
     return (
       <div
         key={cardId}
-        className={`w-10 h-14 rounded border-2 bg-background flex flex-col items-center justify-center text-xs font-bold shadow-sm
+        className={`absolute w-10 h-14 rounded border-2 bg-background flex flex-col items-center justify-center text-xs font-bold shadow-md transition-all hover:z-10 hover:-translate-y-2
           ${isRed ? 'text-red-500 border-red-300' : 'text-foreground border-border'}`}
+        style={{
+          transform: `rotate(${rotation}deg) translateY(${translateY}px)`,
+          left: `${index * 8}px`,
+          transformOrigin: 'bottom center',
+        }}
       >
         {card.joker ? (
           <span className="text-lg">🃏</span>
@@ -45,35 +58,49 @@ export const PlayersArea: React.FC<PlayersAreaProps> = ({
     );
   };
 
-  const renderMeld = (meld: Meld, playerHasOpened: boolean) => (
-    <motion.div
-      key={meld.id}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative group"
-    >
-      <div className="flex gap-0.5 p-2 rounded-lg bg-card border border-border hover:border-primary/40 transition-colors">
-        <div className="flex gap-0.5">
-          {meld.cards.map(renderCard)}
-        </div>
-        <div className="flex items-center justify-center text-xs text-primary font-bold ml-2 px-1">
-          {meld.points}
-        </div>
-        
-        {/* Button to add cards to this meld */}
-        {playerHasOpened && selectedCards.size > 0 && onAddToMeld && (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="ml-1 h-auto px-1 py-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={() => onAddToMeld(meld.id)}
+  const renderMeld = (meld: Meld, playerHasOpened: boolean) => {
+    const cardCount = meld.cards.length;
+    const fanWidth = Math.max(cardCount * 8 + 32, 60); // Calculate width based on card overlap
+    
+    return (
+      <motion.div
+        key={meld.id}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative group"
+      >
+        <div className="flex items-center gap-2 p-2 rounded-lg bg-card border border-border hover:border-primary/40 transition-colors">
+          {/* Fan of cards */}
+          <div 
+            className="relative flex items-center justify-center py-1"
+            style={{ 
+              minWidth: `${fanWidth}px`,
+              height: '60px'
+            }}
           >
-            <Plus className="w-3 h-3" />
-          </Button>
-        )}
-      </div>
-    </motion.div>
-  );
+            {meld.cards.map((cardId, index) => renderCard(cardId, index, cardCount))}
+          </div>
+          
+          {/* Points display */}
+          <div className="flex items-center justify-center text-xs text-primary font-bold px-1 shrink-0">
+            {meld.points}
+          </div>
+          
+          {/* Button to add cards to this meld */}
+          {playerHasOpened && selectedCards.size > 0 && onAddToMeld && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-auto px-1 py-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+              onClick={() => onAddToMeld(meld.id)}
+            >
+              <Plus className="w-3 h-3" />
+            </Button>
+          )}
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
     <div className="w-full bg-background/80 backdrop-blur-sm border-y border-border py-3 px-2">
