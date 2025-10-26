@@ -58,11 +58,9 @@ export const ActionBar: React.FC<ActionBarProps> = ({
     <motion.div
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed bottom-0 left-0 right-0 z-50"
+      className="action-bar"
     >
-      <div className="bg-gradient-to-t from-background via-background to-transparent backdrop-blur-xl border-t-2 border-primary/20 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        <div className="container mx-auto px-2 md:px-6 py-2">
-          <div className="flex flex-wrap justify-center items-center gap-1.5 md:gap-3">
+      <div className="flex flex-wrap justify-center items-center gap-1.5 md:gap-3">
             <Button
               onClick={handleDrawStock}
               disabled={!canAct}
@@ -124,8 +122,6 @@ export const ActionBar: React.FC<ActionBarProps> = ({
             >
               ⏭️ <span className="hidden sm:inline">Fin tour</span><span className="sm:hidden">Fin</span>
             </Button>
-          </div>
-        </div>
       </div>
     </motion.div>
   );

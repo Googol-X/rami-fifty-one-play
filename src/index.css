@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --vh: 1vh;
+}
+
+@supports (-webkit-touch-callout: none) {
+  :root { --vh: 1dvh; }
+}
+
+.app-shell {
+  min-height: calc(var(--vh) * 100);
+  padding-bottom: max(var(--safe-bottom), 10px);
+  background: #0b0e11;
+  overflow: hidden;
+}
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: max(var(--safe-bottom), 8px);
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  z-index: 50;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
