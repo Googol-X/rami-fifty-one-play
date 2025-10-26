@@ -29,7 +29,7 @@ export default function Sandbox() {
   const { toast } = useToast();
   const [meldKind, setMeldKind] = React.useState<MeldKind>('run');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
-  const [handScale, setHandScale] = React.useState(1);
+  const [handScale, setHandScale] = React.useState(0.88);
   const [playersCount, setPlayersCount] = React.useState(2);
   const [roundNumber, setRoundNumber] = React.useState(1);
   const [botDifficulty, setBotDifficulty] = React.useState<BotDifficulty>('medium');
@@ -446,16 +446,17 @@ export default function Sandbox() {
                     <span>Brelan</span>
                   </label>
                 </div>
-                <div className="flex items-center gap-1.5 md:gap-2 bg-secondary/30 rounded-lg px-2 md:px-3 py-1 md:py-1.5 border border-primary/20">
-                  <label className="text-xs md:text-sm font-medium">🔍</label>
+                <div className="ml-2 flex items-center gap-2">
+                  <span className="text-[11px] opacity-80">Zoom</span>
                   <input 
                     type="range" 
-                    min={0.6} 
-                    max={1.2} 
-                    step={0.05} 
-                    value={handScale} 
-                    onChange={(e)=>setHandScale(parseFloat(e.target.value))}
-                    className="w-16 md:w-28 accent-primary cursor-pointer"
+                    min={0.72} 
+                    max={1.18} 
+                    step={0.04}
+                    value={handScale}
+                    onChange={(e) => setHandScale(parseFloat(e.target.value))}
+                    style={{ accentColor: '#FFD54A' }}
+                    className="w-16 md:w-28 cursor-pointer"
                   />
                 </div>
               </div>
