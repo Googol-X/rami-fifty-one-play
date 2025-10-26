@@ -8,6 +8,7 @@ import { ActionBar } from '@/features/game/ui/ActionBar';
 import { Scoreboard } from '@/features/game/ui/Scoreboard';
 import { RoundScore } from '@/components/RoundScore';
 import { GameOver } from '@/components/GameOver';
+import { OrientationGuard } from '@/components/OrientationGuard';
 import { AdvancedBotAI, BotDifficulty } from '@/utils/advancedBotAI';
 import type { Move } from '@/types/game';
 import { RANK_VALUES } from '@/types/game';
@@ -320,14 +321,15 @@ function TableContent() {
 
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-background">
-      {/* Scoreboard */}
-      <Scoreboard
-        meldsCount={state.melds.length}
-        stockCount={state.piles.draw.length}
-        roundNumber={roundNumber}
-        onQuit={() => window.location.href = '/'}
-      />
+    <OrientationGuard>
+      <div className="relative w-full h-screen overflow-hidden bg-background">
+        {/* Scoreboard */}
+        <Scoreboard
+          meldsCount={state.melds.length}
+          stockCount={state.piles.draw.length}
+          roundNumber={roundNumber}
+          onQuit={() => window.location.href = '/'}
+        />
 
       {/* Bot difficulty selector */}
       <div className="fixed top-20 right-4 z-30 bg-background/95 backdrop-blur-lg border border-border rounded-lg p-3 shadow-lg">
@@ -460,6 +462,7 @@ function TableContent() {
         />
       )}
     </div>
+    </OrientationGuard>
   );
 }
 

@@ -8,6 +8,7 @@ import { PlayersArea } from '../ui/PlayersArea';
 import { ActionBar } from '../ui/ActionBar';
 import { Scoreboard } from '../ui/Scoreboard';
 import { BotDifficulty as BotDifficultyPanel } from '../ui/BotDifficulty';
+import { OrientationGuard } from '@/components/OrientationGuard';
 import { AdvancedBotAI, BotDifficulty } from '@/utils/advancedBotAI';
 import { RoundScore } from '@/components/RoundScore';
 import { GameOver } from '@/components/GameOver';
@@ -366,7 +367,8 @@ export default function Sandbox() {
 
   return (
     <LandscapeOnly>
-      <div className="relative w-full h-screen overflow-hidden bg-background">
+      <OrientationGuard>
+        <div className="relative w-full h-screen overflow-hidden bg-background">
       {/* Scoreboard */}
       <Scoreboard
         meldsCount={state.melds.length}
@@ -516,6 +518,7 @@ export default function Sandbox() {
         />
       )}
     </div>
+    </OrientationGuard>
     </LandscapeOnly>
   );
 }
