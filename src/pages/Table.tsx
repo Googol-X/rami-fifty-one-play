@@ -22,6 +22,7 @@ import { Brain } from 'lucide-react';
 import { useDevMode } from '@/hooks/useDevMode';
 import { soundManager } from '@/lib/sound';
 import { motion } from 'framer-motion';
+import SelfAuditOverlay from '@/components/SelfAuditOverlay';
 
 const P1 = { id: 'p1', displayName: 'Toi' };
 const P2 = { id: 'p2', displayName: 'Bot' };
@@ -630,6 +631,8 @@ export default function Table() {
           </motion.div>
         </div>
       )}
+      
+      {typeof window !== 'undefined' && <SelfAuditOverlay />}
     </>
   );
 }
