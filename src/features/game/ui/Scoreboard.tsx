@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { X, Volume2, VolumeX } from 'lucide-react';
+import { X, Volume2, VolumeX, Brain } from 'lucide-react';
 import { audioService } from '@/utils/audioService';
 
 interface ScoreboardProps {
@@ -9,13 +9,15 @@ interface ScoreboardProps {
   stockCount: number;
   roundNumber: number;
   onQuit?: () => void;
+  onChangeDifficulty?: () => void;
 }
 
 export const Scoreboard: React.FC<ScoreboardProps> = ({
   meldsCount,
   stockCount,
   roundNumber,
-  onQuit
+  onQuit,
+  onChangeDifficulty
 }) => {
   const [soundEnabled, setSoundEnabled] = React.useState(audioService.isEnabled());
 
@@ -64,6 +66,18 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
             </div>
 
             <div className="flex items-center gap-1 md:gap-2">
+              {onChangeDifficulty && (
+                <Button
+                  onClick={onChangeDifficulty}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 h-7 md:h-9"
+                  title="Changer la difficulté"
+                >
+                  <Brain className="w-3 h-3 md:w-4 md:h-4" />
+                </Button>
+              )}
+              
               <Button
                 onClick={toggleSound}
                 variant="ghost"

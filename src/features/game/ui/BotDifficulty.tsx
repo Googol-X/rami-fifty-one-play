@@ -21,7 +21,8 @@ export const BotDifficulty: React.FC<BotDifficultyProps> = ({ onSelect }) => {
       initial={{ opacity: 0, x: 100 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 100 }}
-      className="fixed top-20 right-4 z-30 bg-gradient-to-br from-secondary to-secondary/80 backdrop-blur-xl border-2 border-primary/30 rounded-xl p-4 shadow-2xl"
+      className="DifficultyBar fixed top-20 right-4 z-30 bg-gradient-to-br from-secondary to-secondary/80 backdrop-blur-xl border-2 border-primary/30 rounded-xl p-4 shadow-2xl"
+      data-difficulty-bar
     >
       <div className="flex items-center gap-2 mb-3">
         <Brain className="w-5 h-5 text-primary" />

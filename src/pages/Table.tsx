@@ -9,6 +9,7 @@ import { Table as GameTable } from '@/features/game/ui/Table';
 import { Hand } from '@/features/game/ui/Hand';
 import { ActionBar } from '@/features/game/ui/ActionBar';
 import { Scoreboard } from '@/features/game/ui/Scoreboard';
+import { BotDifficulty as BotDifficultySelector } from '@/features/game/ui/BotDifficulty';
 import { RoundScore } from '@/components/RoundScore';
 import { GameOver } from '@/components/GameOver';
 import { OrientationGuard } from '@/components/OrientationGuard';
@@ -21,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Brain } from 'lucide-react';
 import { useDevMode } from '@/hooks/useDevMode';
 import { soundManager } from '@/lib/sound';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import SelfAuditOverlay from '@/components/SelfAuditOverlay';
 
 const P1 = { id: 'p1', displayName: 'Toi' };
@@ -32,10 +33,12 @@ function TableContent() {
   const { toast } = useToast();
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
   const [roundNumber, setRoundNumber] = useState(1);
-  const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('medium');
+  const [botDifficulty, setBotDifficulty] = useState<BotDifficulty | null>(null);
   const [isBotThinking, setIsBotThinking] = useState(false);
   const [handScale, setHandScale] = useState(0.9); // desktop default
   const isDevMode = useDevMode();
+  
+  const isDifficultySet = botDifficulty !== null;
   
   // Timer state
   const [playerTimeLeft, setPlayerTimeLeft] = useState(30000);
@@ -55,8 +58,8 @@ function TableContent() {
     roundStartTimes: [Date.now()] as number[],
   });
   
-  // Bot AI instance
-  const botAI = React.useMemo(() => new AdvancedBotAI(botDifficulty), [botDifficulty]);
+  // Bot AI instance (with default if not set yet)
+  const botAI = React.useMemo(() => new AdvancedBotAI(botDifficulty ?? 'medium'), [botDifficulty]);
 
   React.useEffect(() => {
     if (!state) {
@@ -408,7 +411,7 @@ function TableContent() {
             }}
             onToggleDifficulty={() => {
               const difficulties: BotDifficulty[] = ['easy', 'medium', 'hard'];
-              const currentIndex = difficulties.indexOf(botDifficulty);
+              const currentIndex = difficulties.indexOf(botDifficulty ?? 'medium');
               const nextIndex = (currentIndex + 1) % difficulties.length;
               setBotDifficulty(difficulties[nextIndex]);
             }}
@@ -425,44 +428,15 @@ function TableContent() {
           stockCount={state.piles.draw.length}
           roundNumber={roundNumber}
           onQuit={() => window.location.href = '/'}
+          onChangeDifficulty={() => setBotDifficulty(null)}
         />
 
-      {/* Bot difficulty selector */}
-      <div className="fixed top-20 right-4 z-30 bg-background/95 backdrop-blur-lg border border-border rounded-lg p-3 shadow-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <Brain className="w-4 h-4 text-primary" />
-          <span className="text-xs font-semibold text-foreground">Difficulté Bot</span>
-        </div>
-        <div className="flex gap-1">
-          <Button
-            size="sm"
-            variant={botDifficulty === 'easy' ? 'default' : 'outline'}
-            onClick={() => setBotDifficulty('easy')}
-            className="text-xs h-7 px-2"
-            disabled={!isMyTurn}
-          >
-            Facile
-          </Button>
-          <Button
-            size="sm"
-            variant={botDifficulty === 'medium' ? 'default' : 'outline'}
-            onClick={() => setBotDifficulty('medium')}
-            className="text-xs h-7 px-2"
-            disabled={!isMyTurn}
-          >
-            Moyen
-          </Button>
-          <Button
-            size="sm"
-            variant={botDifficulty === 'hard' ? 'default' : 'outline'}
-            onClick={() => setBotDifficulty('hard')}
-            className="text-xs h-7 px-2"
-            disabled={!isMyTurn}
-          >
-            Difficile
-          </Button>
-        </div>
-      </div>
+      {/* Bot difficulty selector - shown only until first selection */}
+      <AnimatePresence>
+        {!isDifficultySet && (
+          <BotDifficultySelector onSelect={(level) => setBotDifficulty(level)} />
+        )}
+      </AnimatePresence>
 
       {/* Main game table */}
       <div className="pt-16 pb-32 h-full">
