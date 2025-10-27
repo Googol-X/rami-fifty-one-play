@@ -434,7 +434,7 @@ function TableContent() {
       {/* Bot difficulty selector - shown only until first selection */}
       <AnimatePresence>
         {!isDifficultySet && (
-          <BotDifficultySelector onSelect={(level) => setBotDifficulty(level)} />
+          <BotDifficultySelector />
         )}
       </AnimatePresence>
 

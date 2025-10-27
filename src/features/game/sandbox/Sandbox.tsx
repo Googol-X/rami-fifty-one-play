@@ -566,7 +566,7 @@ export default function Sandbox() {
 
       {/* Bot difficulty selector */}
       {showBot && (
-        <BotDifficultyPanel onSelect={pick} />
+        <BotDifficultyPanel />
       )}
 
       {/* Main game table */}

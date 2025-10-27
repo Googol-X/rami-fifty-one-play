@@ -2,19 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Brain } from 'lucide-react';
-import type { BotDifficulty as DifficultyType } from '@/utils/advancedBotAI';
+import { useGame } from '@/contexts/GameContext';
 
-interface BotDifficultyProps {
-  onSelect: (level: DifficultyType) => void;
-}
+export const BotDifficulty: React.FC = () => {
+  const { difficulty, setDifficulty } = useGame();
 
-export const BotDifficulty: React.FC<BotDifficultyProps> = ({ onSelect }) => {
-  const [selectedLevel, setSelectedLevel] = React.useState<DifficultyType | null>(null);
-
-  const handleSelect = (level: DifficultyType) => {
-    setSelectedLevel(level);
-    onSelect(level);
-  };
+  if (difficulty !== null) return null;
 
   return (
     <motion.div 
@@ -29,30 +22,17 @@ export const BotDifficulty: React.FC<BotDifficultyProps> = ({ onSelect }) => {
         <span className="text-sm font-bold text-primary">Niveau Bot</span>
       </div>
       <div className="flex flex-col gap-2">
-        <Button
-          size="sm"
-          variant={selectedLevel === 'easy' ? 'default' : 'outline'}
-          onClick={() => handleSelect('easy')}
-          className="text-xs h-8 font-semibold justify-start"
-        >
-          🟢 Facile
-        </Button>
-        <Button
-          size="sm"
-          variant={selectedLevel === 'medium' ? 'default' : 'outline'}
-          onClick={() => handleSelect('medium')}
-          className="text-xs h-8 font-semibold justify-start"
-        >
-          🟡 Moyen
-        </Button>
-        <Button
-          size="sm"
-          variant={selectedLevel === 'hard' ? 'default' : 'outline'}
-          onClick={() => handleSelect('hard')}
-          className="text-xs h-8 font-semibold justify-start"
-        >
-          🔴 Difficile
-        </Button>
+        {(['easy', 'medium', 'hard'] as const).map((lvl) => (
+          <Button
+            key={lvl}
+            size="sm"
+            variant="outline"
+            onClick={() => setDifficulty(lvl)}
+            className="text-xs h-8 font-semibold justify-start"
+          >
+            {lvl === 'easy' ? '🟢 Facile' : lvl === 'medium' ? '🟡 Moyen' : '🔴 Difficile'}
+          </Button>
+        ))}
       </div>
     </motion.div>
   );
