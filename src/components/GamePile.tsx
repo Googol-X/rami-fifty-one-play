@@ -6,79 +6,58 @@ interface GamePileProps {
   discardPile: CardType[];
   onDrawCard: () => void;
   onPickDiscard: () => void;
-  canTakeDiscard?: boolean;
+  canTakeDiscard?: boolean; // NEW
 }
 
 export function GamePile({ drawPile, discardPile, onDrawCard, onPickDiscard, canTakeDiscard = true }: GamePileProps) {
   const topDiscard = discardPile[discardPile.length - 1];
-  const topDiscardLabel = topDiscard 
-    ? `${topDiscard.rank} de ${topDiscard.suit === '♠' ? 'pique' : topDiscard.suit === '♥' ? 'coeur' : topDiscard.suit === '♦' ? 'carreau' : 'trèfle'}`
-    : 'vide';
+  const drawDisabled = drawPile.length === 0;
+  const discardDisabled = !topDiscard || !canTakeDiscard;
 
   return (
-    <div className="flex gap-8 items-center justify-center py-6 px-4" role="region" aria-label="Piles de jeu">
-      {/* Pioche - à gauche */}
+    <div className="flex items-center justify-center gap-6 sm:gap-10 my-2 select-none">
+      {/* Pioche */}
       <div className="text-center group">
-        <p className="text-sm font-medium text-muted-foreground mb-3 flex items-center justify-center gap-2" id="draw-pile-label">
-          <span className="text-lg">📚</span>
-          <span>Pioche ({drawPile.length})</span>
-        </p>
+        <p className="text-sm font-medium text-muted-foreground mb-2">Pioche</p>
         <button
           onClick={onDrawCard}
-          disabled={drawPile.length === 0}
-          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
-          aria-label={`Piocher une carte de la pioche, ${drawPile.length} carte${drawPile.length > 1 ? 's' : ''} restante${drawPile.length > 1 ? 's' : ''}`}
-          aria-describedby="draw-pile-label"
+          disabled={drawDisabled}
+          className={`relative w-16 sm:w-20 h-24 sm:h-28 rounded-lg border-2 ${drawDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'} transition`}
+          aria-label={drawDisabled ? 'Pioche vide' : 'Piocher une carte'}
         >
-          <div className="relative">
-            <Card card={null} className="shadow-xl group-hover:shadow-2xl transition-shadow" />
-            {drawPile.length > 0 && (
-              <>
-                <Card card={null} className="absolute top-0.5 left-0.5 -z-10 opacity-70" />
-                <Card card={null} className="absolute top-1 left-1 -z-20 opacity-40" />
-              </>
-            )}
-          </div>
+          <div className="absolute inset-0 rounded-lg bg-secondary/60 border-border" />
+          <div className="absolute -top-2 -left-2 w-16 sm:w-20 h-24 sm:h-28 rounded-lg bg-secondary/80 border border-border rotate-2" />
+          <div className="absolute -top-4 -left-3 w-16 sm:w-20 h-24 sm:h-28 rounded-lg bg-secondary/90 border border-border -rotate-1" />
         </button>
       </div>
 
-      {/* Séparateur visuel circulaire */}
-      <div className="flex flex-col items-center gap-2">
+      {/* Séparateur */}
+      <div className="flex flex-col items-center gap-2" aria-hidden>
         <div className="w-px h-16 bg-gradient-to-b from-transparent via-border to-transparent" />
         <div className="w-3 h-3 rounded-full bg-primary/30 animate-pulse" />
         <div className="w-px h-16 bg-gradient-to-t from-transparent via-border to-transparent" />
       </div>
 
-      {/* Défausse - à droite */}
+      {/* Défausse */}
       <div className="text-center group">
-        <p className="text-sm font-medium text-muted-foreground mb-3 flex items-center justify-center gap-2" id="discard-pile-label">
-          <span className="text-lg">🗑️</span>
-          <span>Défausse ({discardPile.length})</span>
-        </p>
+        <p className="text-sm font-medium text-muted-foreground mb-2">Défausse</p>
         <button
           onClick={onPickDiscard}
-          disabled={!topDiscard || !canTakeDiscard}
-          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
-          aria-label={!canTakeDiscard ? 'Action non permise' : `Prendre la carte de défausse: ${topDiscardLabel}`}
-          aria-describedby="discard-pile-label"
-          title={!canTakeDiscard && topDiscard ? 'Action non permise selon les règles' : undefined}
+          disabled={discardDisabled}
+          className={`relative transition ${discardDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}`}
+          aria-label={
+            !topDiscard ? 'Défausse vide'
+            : discardDisabled ? 'Prise depuis la défausse non autorisée'
+            : `Prendre ${topDiscard.rank} ${topDiscard.suit}`
+          }
+          title={
+            !topDiscard ? 'Défausse vide'
+            : discardDisabled ? 'Action non permise'
+            : ''
+          }
+          data-discard-top
         >
-          {topDiscard ? (
-            <div className="relative">
-              <Card card={topDiscard} className="shadow-xl group-hover:shadow-2xl transition-shadow" />
-              {discardPile.length > 1 && (
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-1 bg-accent/20 rounded-full blur-sm" />
-              )}
-            </div>
-          ) : (
-            <div 
-              className="w-16 h-24 rounded-lg border-2 border-dashed border-border bg-secondary/20 flex items-center justify-center text-muted-foreground/50 text-xs" 
-              role="img" 
-              aria-label="Défausse vide"
-            >
-              Vide
-            </div>
-          )}
+          <Card card={topDiscard ?? null} />
         </button>
       </div>
     </div>
