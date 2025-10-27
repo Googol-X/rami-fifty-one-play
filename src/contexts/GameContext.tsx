@@ -13,6 +13,8 @@ export interface RTTransport {
 interface GameContextValue {
   state: TableState | null;
   deck: Record<string, Card>;
+  difficulty: 'easy' | 'medium' | 'hard' | null;
+  setDifficulty: (difficulty: 'easy' | 'medium' | 'hard' | null) => void;
   initLocal(players: { id: string; displayName: string }[]): void;
   dispatch(move: Move): void;
   reorderHand(playerId: string, newOrder: string[]): void;
@@ -28,6 +30,7 @@ type GameProviderProps = {
 
 export const GameProvider: React.FC<GameProviderProps> = ({ children, transport, roomId }) => {
   const [state, setState] = React.useState<TableState | null>(null);
+  const [difficulty, setDifficulty] = React.useState<'easy' | 'medium' | 'hard' | null>(null);
   const deckRef = React.useRef<Record<string, Card>>({});
 
   const initLocal = React.useCallback((players: { id: string; displayName: string }[]) => {
@@ -100,7 +103,15 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children, transport,
     });
   }, []);
 
-  const value: GameContextValue = { state, deck: deckRef.current, initLocal, dispatch, reorderHand };
+  const value: GameContextValue = { 
+    state, 
+    deck: deckRef.current, 
+    difficulty, 
+    setDifficulty, 
+    initLocal, 
+    dispatch, 
+    reorderHand 
+  };
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 };
 
