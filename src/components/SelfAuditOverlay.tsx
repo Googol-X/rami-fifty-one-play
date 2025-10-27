@@ -1,36 +1,44 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 type Check = { key:string; label:string; pass:boolean|null };
+
 const q = (s:string)=>document.querySelector(s);
 const exists = (s:string)=>!!q(s);
 
 function toReport(checks:Check[]){
   return {
     timestamp: new Date().toISOString(),
-    url: location.href,
-    results: checks.map(c=>({key:c.key,label:c.label,pass:c.pass}))
+    url: (typeof location!=='undefined'? location.href : ''),
+    results: checks.map(c=>({ key:c.key, label:c.label, pass:c.pass }))
   };
 }
 
 export default function SelfAuditOverlay(){
   if (typeof window==='undefined') return null;
+
   const [vw,setVw]=useState(window.innerWidth);
-  useEffect(()=>{ const r=()=>setVw(window.innerWidth); window.addEventListener('resize',r); return ()=>window.removeEventListener('resize',r);},[]);
+  useEffect(()=>{
+    const r=()=>setVw(window.innerWidth);
+    window.addEventListener('resize',r);
+    return ()=>window.removeEventListener('resize',r);
+  },[]);
+
   const checks:Check[] = useMemo(()=>{
     const fanOk = exists('.fan .fanCard'); // éventail actif
     const fanInside = (()=>{ const el=q('.fan') as HTMLElement|null; if(!el) return null; const r=el.getBoundingClientRect(); return r.left>=0 && r.right<=window.innerWidth+1;})();
     const oppOk = document.querySelectorAll(`[aria-label="Carte de l'adversaire (dos)"]`).length>0;
     const discardGuard = (()=>{ const btn=q('[aria-label*="Prendre"]') as HTMLButtonElement|null; if(!btn) return null; const denied = btn.getAttribute('title')?.includes('non permise') || btn.disabled; return denied!==undefined;})();
     const playerScroll = (()=>{ const el=q('.player-hand-scroll') as HTMLElement|null; if(!el) return null; return el.scrollWidth>el.clientWidth;})();
-    const difficultyGone = !exists('.DifficultyBar'); // adapte si ton sélecteur diffère
+    const difficultyGone = !exists('.DifficultyBar'); // adapte si sélecteur différent
+
     return [
-      { key:'fan', label:'Éventail joueur compact + chevauchement', pass:!!fanOk },
-      { key:'fanInside', label:`Pas d'overflow latéral du fan`, pass:fanInside },
-      { key:'opp', label:'Dos des cartes adverses visibles sur table', pass:oppOk },
-      { key:'discard', label:'Défausse gardée (top cliquable seulement si autorisé)', pass:discardGuard },
-      { key:'scroll', label:'Main joueur scrollable (mobile)', pass:playerScroll },
-      { key:'diff', label:'Barre de difficulté masquée après choix', pass:difficultyGone },
-      { key:'iphone', label:`Heuristique iPhone (vw<=430)`, pass: vw<=430 ? true : null },
+      { key:'fan',       label:'Éventail joueur compact + chevauchement', pass: !!fanOk },
+      { key:'fanInside', label:"Pas d'overflow latéral du fan",           pass: fanInside },
+      { key:'opp',       label:'Dos des cartes adverses visibles sur table', pass: oppOk },
+      { key:'discard',   label:'Défausse gardée (top cliquable seulement si autorisé)', pass: discardGuard },
+      { key:'scroll',    label:'Main joueur scrollable (mobile)',         pass: playerScroll },
+      { key:'diff',      label:'Barre de difficulté masquée après choix', pass: difficultyGone },
+      { key:'iphone',    label:`Heuristique iPhone (vw<=430)`,            pass: vw<=430 ? true : null },
     ];
   },[vw]);
 
@@ -38,8 +46,8 @@ export default function SelfAuditOverlay(){
 
   const copy = async ()=>{
     const data = JSON.stringify(toReport(checks), null, 2);
-    try { await navigator.clipboard.writeText(data); alert('Rapport copié dans le presse-papiers ✅'); }
-    catch { console.log(data); alert('Copie non autorisée, rapport dans la console.'); }
+    try { await navigator.clipboard.writeText(data); alert('Rapport copié ✅'); }
+    catch { console.log(data); alert('Copie refusée: rapport loggé en console.'); }
   };
 
   return (
