@@ -15,6 +15,7 @@ interface TableProps {
   currentPlayerId: string;
   onDrawStock?: () => void;
   onDrawDiscard?: () => void;
+  canTakeDiscard?: boolean;
 }
 
 export const Table: React.FC<TableProps> = ({ 
@@ -22,7 +23,8 @@ export const Table: React.FC<TableProps> = ({
   deck, 
   currentPlayerId,
   onDrawStock,
-  onDrawDiscard 
+  onDrawDiscard,
+  canTakeDiscard = true
 }) => {
   const [W, setW] = React.useState(window.innerWidth);
   
@@ -87,6 +89,7 @@ export const Table: React.FC<TableProps> = ({
                   topCard={topCard}
                   onPick={onDrawDiscard}
                   disabled={!onDrawDiscard}
+                  canTakeDiscard={canTakeDiscard}
                 />
               );
             })()}

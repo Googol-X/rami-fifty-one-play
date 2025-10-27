@@ -10,6 +10,7 @@ import { Hand } from '@/features/game/ui/Hand';
 import { ActionBar } from '@/features/game/ui/ActionBar';
 import { Scoreboard } from '@/features/game/ui/Scoreboard';
 import { BotDifficulty as BotDifficultySelector } from '@/features/game/ui/BotDifficulty';
+import { OpponentArea } from '@/features/game/ui/OpponentArea';
 import { RoundScore } from '@/components/RoundScore';
 import { GameOver } from '@/components/GameOver';
 import { OrientationGuard } from '@/components/OrientationGuard';
@@ -252,6 +253,7 @@ function TableContent() {
   }
 
   const me = state.players.find((p) => p.id === P1.id)!;
+  const bot = state.players.find((p) => p.id === P2.id);
   const isMyTurn = state.activePlayer === P1.id;
 
   const toggleCard = (id: string) => {
@@ -440,18 +442,24 @@ function TableContent() {
 
       {/* Main game table */}
       <div className="pt-16 pb-32 h-full">
-      <GameTable
-        state={state}
-        deck={deck}
-        currentPlayerId={P1.id}
-        onDrawStock={handleDrawStock}
-        onDrawDiscard={handleDrawDiscard}
-      />
+        {/* Opponent's cards area */}
+        <div className="container mx-auto px-2 md:px-4 mb-4">
+          <OpponentArea count={bot?.hand.length ?? 13} />
+        </div>
+        
+        <GameTable
+          state={state}
+          deck={deck}
+          currentPlayerId={P1.id}
+          onDrawStock={handleDrawStock}
+          onDrawDiscard={handleDrawDiscard}
+          canTakeDiscard={isMyTurn && state.phase === 'draw' && state.piles.discard.length > 0}
+        />
       </div>
 
       {/* Player's hand - sticky at bottom above action bar */}
       <div className="fixed bottom-16 md:bottom-24 left-0 right-0 z-30 bg-gradient-to-t from-background via-background to-transparent pt-2 md:pt-6 pb-2 md:pb-4">
-        <div className="container mx-auto px-2 md:px-4">
+        <div className="container mx-auto px-2 md:px-4 player-hand-scroll">
           <div className="flex items-center justify-between mb-1 md:mb-2">
             <h3 className="text-xs md:text-sm font-semibold text-muted-foreground">
               Ta main ({me.hand.length} cartes)

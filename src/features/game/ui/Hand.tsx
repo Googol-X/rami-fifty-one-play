@@ -133,14 +133,18 @@ export const Hand: React.FC<FanHandProps> = ({
     setDropTarget(null);
   };
 
-  // Calculate dynamic fan parameters
+  // Calculate dynamic fan parameters with mobile optimization
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 430;
+  const effectiveSpread = isMobile ? Math.min(35, spread) : spread;
+  const effectiveOverlap = isMobile ? Math.max(12, overlap * 0.6) : overlap;
   const maxCards = cards.length;
-  const totalSpread = spread;
-  const anglePerCard = maxCards > 1 ? totalSpread / (maxCards - 1) : 0;
-  const startAngle = -totalSpread / 2 + tilt;
+  const anglePerCard = maxCards > 1 ? effectiveSpread / (maxCards - 1) : 0;
+  const startAngle = -effectiveSpread / 2 + tilt;
+  const midIndex = (maxCards - 1) / 2;
   
   return (
-    <div className="w-full flex justify-center pb-4 px-2">
+    <div className="w-full player-hand-scroll">
+      <div className="flex justify-center pb-4 px-2">
       {onReorder && (
         <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg px-3 py-1.5 border border-primary/20 z-50">
           <GripVertical className="w-3 h-3" />
@@ -161,7 +165,8 @@ export const Hand: React.FC<FanHandProps> = ({
       >
         {cards.map((id, index) => {
           const rotation = startAngle + (index * anglePerCard);
-          const zIndex = faceDown ? index : (hoveredIndex === index ? 40 : selected.has(id) ? 30 : 20 + index);
+          const offsetX = (index - midIndex) * effectiveOverlap;
+          const zIndex = faceDown ? index : (hoveredIndex === index ? 40 : selected.has(id) ? 30 : 100 + index);
           
           return (
             <div
@@ -178,6 +183,9 @@ export const Hand: React.FC<FanHandProps> = ({
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
               title={onReorder ? "Glissez pour déplacer cette carte" : undefined}
+              role="button"
+              aria-pressed={selected.has(id)}
+              tabIndex={0}
               className={cn(
                 "fanCard",
                 !faceDown && onReorder && "cursor-grab active:cursor-grabbing",
@@ -186,7 +194,7 @@ export const Hand: React.FC<FanHandProps> = ({
                 !faceDown && hoveredIndex === index && "-translate-y-12"
               )}
               style={{
-                transform: `translateX(-50%) rotate(${rotation}deg)`,
+                transform: `translateX(${offsetX}px) rotate(${rotation}deg) scale(${scale})`,
                 zIndex,
                 '--fan-radius': `${radius}px`
               } as React.CSSProperties}
@@ -271,7 +279,11 @@ export const Hand: React.FC<FanHandProps> = ({
           </div>
           );
         })}
+        {cards.length === 0 && (
+          <p className="text-muted-foreground italic">Aucune carte</p>
+        )}
       </div>
+    </div>
     </div>
   );
 };

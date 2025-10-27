@@ -5,22 +5,38 @@ interface DiscardPileProps {
   topCard?: Card;
   onPick?: () => void;
   disabled?: boolean;
+  canTakeDiscard?: boolean;
 }
 
 export const DiscardPile: React.FC<DiscardPileProps> = ({ 
   topCard, 
   onPick,
-  disabled = false 
+  disabled = false,
+  canTakeDiscard = true
 }) => {
   const isRed = topCard && (topCard.suit === '♥' || topCard.suit === '♦');
+  const isDisabled = !topCard || disabled || !canTakeDiscard;
   
   return (
     <button
       data-tutorial-id="discard-pile"
       className="rounded-xl border-2 border-accent bg-card/90 px-3 py-2 shadow-xl hover:ring-2 hover:ring-accent/60 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      title={topCard ? "Piocher la défausse" : "Défausse vide"}
+      title={
+        !topCard 
+          ? 'Défausse vide' 
+          : !canTakeDiscard 
+          ? 'Action non permise' 
+          : 'Piocher la défausse'
+      }
+      aria-label={
+        !topCard 
+          ? 'Défausse vide' 
+          : isDisabled 
+          ? 'Prise depuis la défausse non autorisée' 
+          : `Prendre ${topCard.rank} ${topCard.suit}`
+      }
       onClick={onPick}
-      disabled={!topCard || disabled}
+      disabled={isDisabled}
     >
       {topCard ? (
         <div className="flex flex-col items-center gap-1">
